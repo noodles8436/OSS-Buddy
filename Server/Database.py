@@ -1,11 +1,17 @@
 import pymysql
 
+# CONFIG
+host = "localhost"
+user = "root"
+passwd = "159357"
+db = "buddy_db"
+
 
 # requirement : buddy_db 라는 데이터베이스가 이미 존재해야함.
 # requirement : mysql Database 이어여함.
 def createTable():
     try:
-        conn = pymysql.connect(host='localhost', user='root', password='159357', db='buddy_db', charset='utf8')
+        conn = pymysql.connect(host=host, user=user, password=passwd, db=db, charset='utf8')
         cur = conn.cursor()
     except Exception as e:
         print("[BUDDY-DB] 데이터베이스 연결에 실패했습니다. 데이터베이스 구축을 종료합니다.")

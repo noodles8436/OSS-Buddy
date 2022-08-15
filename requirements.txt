@@ -1,0 +1,25 @@
+certifi==2022.6.15
+cffi @ file:///C:/ci_310/cffi_1642682485096/work
+charset-normalizer==2.1.0
+cryptography @ file:///C:/ci/cryptography_1652101772384/work
+cycler==0.11.0
+fonttools==4.34.4
+idna==3.3
+imutils==0.5.4
+kiwisolver==1.4.3
+matplotlib==3.5.2
+numpy @ file:///D:/bld/numpy_1657483969318/work
+opencv-contrib-python==4.6.0.66
+opencv-python==4.6.0
+packaging==21.3
+Pillow==9.2.0
+pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+PyMySQL @ file:///C:/ci/pymysql_1610482945113/work
+pyparsing==3.0.9
+pytesseract==0.3.9
+python-dateutil==2.8.2
+requests==2.28.1
+scipy==1.8.1
+six==1.16.0
+urllib3==1.26.10
+wincertstore==0.2

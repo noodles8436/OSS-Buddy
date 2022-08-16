@@ -1,0 +1,111 @@
+package com.example.doby;
+
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.TextView;
+import android.widget.Button;
+import android.widget.Toast;
+
+
+public class MainActivity extends AppCompatActivity {
+    //레이아웃 구성
+    TextView mTvBluetoothStatus;
+    Button BtnBluetoothOn;
+    Button BtnBluetoothOff;
+
+    //Intent 숫자 설정
+    final static int BT_REQUEST_ENABLE = 1;
+
+    //블루투스 객체 생성
+    BluetoothAdapter bluetoothAdapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mTvBluetoothStatus = findViewById(R.id.tvBluetoothStatus);
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        BtnBluetoothOn = findViewById(R.id.btnBluetoothOn);
+        BtnBluetoothOff = findViewById(R.id.btnBluetoothOff);
+        BtnBluetoothOff.setOnClickListener(view -> bluetoothoff());
+        BtnBluetoothOn.setOnClickListener(view -> bluetoothOn());
+
+        //초기 status값 설정
+        if (bluetoothAdapter.isEnabled()) {
+            mTvBluetoothStatus.setText("블루투스가 켜져 있습니다");
+        } else
+            mTvBluetoothStatus.setText("블루투스가 꺼져 있습니다");
+    }
+
+    void bluetoothOn() {
+        if (bluetoothAdapter == null) {
+            Toast.makeText(getApplicationContext(), "블루투스를 지원하지 않는 기기", Toast.LENGTH_LONG).show();
+        } else {
+            if (bluetoothAdapter.isEnabled()) {
+                Toast.makeText(getApplicationContext(), "이미 활성화되었습니다.", Toast.LENGTH_LONG).show();
+                mTvBluetoothStatus.setText("블루투스가 켜져 있습니다");
+            } else {
+                Toast.makeText(getApplicationContext(), "블루투스가 활성화 되어 있지 않습니다.", Toast.LENGTH_LONG).show();
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                bluetoothAdapter.enable();
+                Toast.makeText(getApplicationContext(),"않이 외 않되?", Toast.LENGTH_LONG).show();
+                Intent intentBluetoothEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(intentBluetoothEnable, BT_REQUEST_ENABLE);
+            }
+        }
+
+    }
+
+    void bluetoothoff() {
+        if (bluetoothAdapter.isEnabled()) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            bluetoothAdapter.disable();
+           Toast.makeText(getApplicationContext(),"블루투스가 비활성화 되었습니다.",Toast.LENGTH_LONG).show();
+       }
+        else{
+            Toast.makeText(getApplicationContext(),"블루투스가 이미 비활성화 되었습니다.",Toast.LENGTH_LONG).show();
+        }
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == BT_REQUEST_ENABLE) {
+            if (resultCode == RESULT_OK) { // 블루투스 활성화를 확인을 클릭하였다면
+                Toast.makeText(getApplicationContext(), "블루투스 활성화", Toast.LENGTH_LONG).show();
+                mTvBluetoothStatus.setText("활성화");
+            } else if (resultCode == RESULT_CANCELED) { // 블루투스 활성화를 취소를 클릭하였다면
+                Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_LONG).show();
+                mTvBluetoothStatus.setText("비활성화");
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode) {
+        super.startActivityForResult(intent, requestCode);
+    }
+}

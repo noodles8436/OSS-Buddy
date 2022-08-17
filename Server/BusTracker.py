@@ -2,8 +2,8 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 # 업로드시 주의 - API Key가 담겨져 있음.
-APIEncodingKey = #######
-APIDecodingKey = #######
+APIEncodingKey = ######
+APIDecodingKey = ######
 
 # API URLS : 국토교통부 버스도착정보 API
 URL_getSttnAcctoArvlPrearngeInfoList = \
@@ -13,8 +13,7 @@ URL_getSttnAcctoSpcifyRouteBusArvlPrearngeInfoList = \
 URL_getCtyCodeList = \
     "http://apis.data.go.kr/1613000/ArvlInfoInqireService/getCtyCodeList"
 
-
-# APL URLS : 국토교통부 버스노선정보 API
+# API URLS : 국토교통부 버스노선정보 API
 URL_getRouteNoList = \
     "http://apis.data.go.kr/1613000/BusRouteInfoInqireService/getRouteNoList"
 URL_getRouteAcctoThrghSttnList = \
@@ -22,7 +21,14 @@ URL_getRouteAcctoThrghSttnList = \
 URL_getRouteInfoIem = \
     "http://apis.data.go.kr/1613000/BusRouteInfoInqireService/getRouteInfoIem"
 
+# API URLS : 국토교통부 버스위치정보 API
+URL_getRouteAcctoBusLcList = \
+    "http://apis.data.go.kr/1613000/BusLcInfoInqireService/getRouteAcctoBusLcList"
+URL_getRouteAcctoSpcifySttnAccesBusLcInfo = \
+    "http://apis.data.go.kr/1613000/BusLcInfoInqireService/getRouteAcctoSpcifySttnAccesBusLcInfo"
+
 baseParams = "?ServiceKey=" + APIEncodingKey + "&_type=xml"
+
 
 class BusTracker:
 
@@ -63,7 +69,7 @@ class BusTracker:
 
     def getBusInformation(self, cityCode: str, routeNo: str) -> dict or None:
         queryParams = baseParams + "&cityCode=" + cityCode + "&routeNo=" + routeNo + \
-                      "&numOfRows=-1" + "&pageNo=1"
+                      "&numOfRows=1" + "&pageNo=1"
 
         xml = requests.get(URL_getRouteNoList + queryParams).text
         root = bs(xml, features="xml")
@@ -74,6 +80,8 @@ class BusTracker:
             print("[BusTracker][ERR] getBusInformation resultCode : " + resultCode)
             print("[BusTracker][ERR] ERR Msg : " + resultMsg)
             return None
+
+        print(root)
 
         result = {}
         result['routeid'] = root.find('routeid').get_text()
@@ -118,10 +126,49 @@ class BusTracker:
 
         return result
 
+    # 버스 위치 관련
+
+    def getAllBusinRoute(self, cityCode: str, routeId: str):
+        queryParams = baseParams + "&cityCode=" + cityCode + "&routeId=" + routeId + \
+                      "&numOfRows=-1" + "&pageNo=1"
+
+        xml = requests.get(URL_getRouteAcctoBusLcList + queryParams).text
+        root = bs(xml, features="xml")
+        resultCode = root.find("resultCode").get_text()
+        resultMsg = root.find("resultMsg").get_text()
+
+        if resultCode != "00":
+            print("[BusTracker][ERR] getAllBusinRoute resultCode : " + resultCode)
+            print("[BusTracker][ERR] ERR Msg : " + resultMsg)
+            return None
+
+        result = {}
+        result['routenm'] = root.find('routenm').get_text()
+        result['totalCount'] = int(root.find('totalCount').get_text())
+
+        items = root.select("item")
+        locations = []
+        for item in items:
+            busItem = dict()
+            busItem['gpslati'] = float(item.find('gpslati').get_text())
+            busItem['gpslong'] = float(item.find('gpslong').get_text())
+            busItem['nodeid'] = item.find('nodeid').get_text()
+            busItem['nodeord'] = int(item.find('nodeord').get_text())
+            locations.append(busItem['nodeord'])
+            busItem['nodenm'] = item.find('nodenm').get_text()
+            busItem['routetp'] = item.find('routetp').get_text()
+            busItem['vehicleno'] = item.find('vehicleno').get_text()
+            result['bus_' + str(busItem['nodeord'])] = busItem
+
+        result['locations'] = locations
+
+        return result
 
 
 if __name__ == "__main__":
     BT = BusTracker()
     #print(BT.getAllServiceAreas())
-    #print(BT.getBusInformation('31250', '700-2')) # GGB234000021
-    print(BT.getBusThrghSttnList('31250', 'GGB234000021'))
+    #print(BT.getBusInformation('31250', '720-2')) # GGB234000021 #GGB234000026
+    #print(BT.getBusThrghSttnList('31250', 'GGB234000021')) #오리역 GGB206000215 GGB206000040
+    #print(BT.getBusThrghSttnList('31250', 'GGB234000026')) #오리역 GGB206000040 GGB206000215
+    print(BT.getAllBusinRoute('31250', 'GGB234000021'))

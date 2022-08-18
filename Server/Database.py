@@ -9,7 +9,7 @@ db = "buddy_db"
 
 def createTable() -> None:
     """ Database.py 내부에 저장된 Config 값을 이용하여 데이터베이스에 접근함
-        이후 테이블 'usertable' 의 존재 여부에 따라 테이블 초기화 및 생성을 수행함
+        이후 테이블 'usertable'과 'busdrivertable' 의 존재 여부에 따라 테이블 초기화 및 생성을 수행함
 
     :return: None
     """
@@ -22,22 +22,42 @@ def createTable() -> None:
 
     cur.execute("SHOW TABLES LIKE 'usertable'")
     result = cur.fetchone()
+    flag = 0
+    if result is not None:
+        if "usertable" in result:
+            print("[BUDDY-DB] 이미 userTable이 존재합니다. 테이블 초기화를 하시겠습니까? [Y/N]")
+            print("[BUDDY-DB] INPUT >> ", end='')
+            if "y" == input().lower():
+                cur.execute("DROP TABLE usertable")
+            else:
+                flag = 1
 
+    if flag == 0:
+        cur.execute("CREATE TABLE usertable("
+                    "phone char(12), name char(3), mac char(17)"
+                    ")")
+        conn.commit()
+
+    cur.execute("SHOW TABLES LIKE 'busdrivertable'")
+    result = cur.fetchone()
     print(result)
+    flag = 0
 
-    if "usertable" == result[0]:
-        print("[BUDDY-DB] 이미 userTable이 존재합니다. 테이블 초기화를 하시겠습니까? [Y/N]")
-        print("[BUDDY-DB] INPUT >> ", end='')
-        if "y" == input().lower():
-            cur.execute("DROP TABLE usertable")
-        else:
-            print("[BUDDY-DB] 테이블 생성을 종료합니다.")
-            return
+    if result is not None:
+        if "busdrivertable" in result:
+            print("[BUDDY-DB] 이미 busdriverTable이 존재합니다. 테이블 초기화를 하시겠습니까? [Y/N]")
+            print("[BUDDY-DB] INPUT >> ", end='')
+            if "y" == input().lower():
+                cur.execute("DROP TABLE busdrivertable")
+            else:
+                flag = 1
 
-    cur.execute("CREATE TABLE usertable("
-                "phone char(12), name char(3), mac char(17)"
-                ")")
-    conn.commit()
+    if flag == 0:
+        cur.execute("CREATE TABLE busdrivertable("
+                    "vehicleno char(12), name char(3), mac char(17)"
+                    ")")
+        conn.commit()
+
     conn.close()
 
     print("[BUDDY-DB] 테이블 생성 완료!")

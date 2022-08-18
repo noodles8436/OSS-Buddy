@@ -7,7 +7,7 @@ passwd = "159357"
 db = "buddy_db"
 
 
-def createTable():
+def createTable() -> None:
     """ Database.py 내부에 저장된 Config 값을 이용하여 데이터베이스에 접근함
         이후 테이블 'usertable' 의 존재 여부에 따라 테이블 초기화 및 생성을 수행함
 
@@ -44,11 +44,11 @@ def createTable():
     print("[BUDDY-DB] 테이블 생성을 종료합니다.")
 
 
-class Database:
+class UserDB:
     """사용자의 정보를 등록하고 조회하기 위한 DB 인터페이스 클래스
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """ Database 클래스 생성자, SQL 서버와 연결 후 연결 정보를 객체에 저장함
         Database.py 내부에 저장된 Config 값을 이용하여 데이터베이스에 접근함
 
@@ -131,7 +131,7 @@ class Database:
 
         return result
 
-    def __del__(self):
+    def __del__(self) -> None:
         """ Database 클래스 소멸자. DB 인터페이스 객체가 사라짐에 따라
             데이터베이스를 저장하고 정상적으로 종료함
 
@@ -148,7 +148,7 @@ class Database:
 
 if __name__ == "__main__":
     createTable()
-    db = Database()
+    db = UserDB()
     db.addUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
     result = db.getUserMac("홍길동", "01012341234")
     db.removeUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")

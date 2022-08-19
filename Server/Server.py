@@ -1,5 +1,7 @@
 import asyncio
 import UserManager
+import PROTOCOL as p
+
 
 class Server:
 
@@ -9,7 +11,7 @@ class Server:
     # (Res. 사용자 등록) 성공 = 00;00 or 실패 = 00;01 -> 클라는 연결을 한번 끊고 다시 시도해야함
 
     # (사용자 로그인) 01;이름;전화번호;맥주소
-    # (Res. 사용자 로그인) 성공 = 01;00 or 실패 = 01;01 <실패시 바로 접속끊기>
+    # (Res. 사용자 로그인) 성공 = 01;00 or 실패 = 01;01 <실패시 바로 접속끊기> or 실패_서버문제 = 01;02 or 실패_클라문제 = 01;03
 
     # (Res. 사용자 위치 확인) 성공 = 02;00 or 실패 = 02;01
 
@@ -24,8 +26,6 @@ class Server:
 
     # (사용자 버스 도착 진동) 06;00
 
-
-
     # (버스기사 등록) 20;차량번호;이름;맥주소
     # (Res. 버스기사 등록) 성공 = 20;00 or 실패 = 20;01
 
@@ -33,8 +33,6 @@ class Server:
     # (Res. 버스기사 로그인) 성공 = 21;00 or 실패 = 21;01
 
     # (버스기사 알림) 22;정거장이름;남은 정거장 수
-
-
 
     # (RaspBerry 연결) 30;nodeid;mac
     # (Res. RaspBerry 연결) 성공 = 30;00 or 실패 = 30;01
@@ -56,16 +54,25 @@ class Server:
         data: bytes = await reader.read(self.packetSize)
         msg = data.decode().split(';')
 
-        if msg[0] == "00":
+        if msg[0] == p.USER_REGISTER:
             if len(msg) == 4:
-                result = self.userMgr.register(name=msg[1], phone_num=msg[2], mac_add=msg[3])
+                msg_result = self.userMgr.register(name=msg[1], phone_num=msg[2], mac_add=msg[3])
             else:
-                result = "00;01"
-            writer.write(result.encode())
+                msg_result = p.USER_REGISTER_FAIL
+            writer.write(msg_result.encode())
             await writer.drain()
 
-        elif msg[0] == "01":  # User Login
-            pass
+        elif msg[0] == p.USER_LOGIN:  # User Login
+            if len(msg) == 4:
+                msg_result = self.userMgr.login(name=msg[1], phone_num=msg[2], mac_add=msg[3])
+            else:
+                msg_result = p.USER_LOGIN_CLIENT_ERR
+
+            writer.write(msg_result.encode())
+            await writer.drain()
+
+            if msg_result == p.USER_LOGIN_SUCCESS:
+                await self.userHandler(reader=reader, writer=writer)
 
         elif msg[0] == "20":  # Bus Driver Login
             pass

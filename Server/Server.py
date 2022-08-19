@@ -13,7 +13,7 @@ class Server:
 
     async def loginHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         data: bytes = await reader.read(self.packetSize)
-        msg = data.decode().split(';')
+        msg = data.decode().split(p.TASK_SPLIT)
 
         if msg[0] == p.USER_REGISTER:
             if len(msg) == 4:
@@ -70,8 +70,43 @@ class Server:
             # 클라이언트 위치 이후 처리
             while self.userMgr.getUserLocation(mac_add=userMac) is not None:
                 # 예약, 취소 명령 받기
-                # 전달 사항 있으면 전달하기 = Alert
-                pass
+                data = await reader.read(p.SERVER_PACKET_SIZE)
+                msg = data.decode().split(p.TASK_SPLIT)
+
+                if msg[0] == p.USER_BUS_CAN_RESERVATION:
+                    if len(msg) == 2:
+                        msg_result = self.busCheck(userMac=userMac, routeNo=msg[1])
+                    else:
+                        msg_result = p.USER_BUS_CAN_RESERVATION_NO
+
+                    writer.write(msg_result.encode())
+                    await writer.drain()
+
+                elif msg[0] == p.USER_BUS_RESERVATION_CONFIRM:
+                    if len(msg) == 2:
+                        msg_result = self.busReservation(userMac=userMac, routeNo=msg[1])
+                    else:
+                        msg_result = p.USER_BUS_RESERVATION_CONFIRM_FAIL
+
+                    writer.write(msg_result.encode())
+                    await writer.drain()
+
+                    if msg_result == p.USER_BUS_RESERVATION_CONFIRM_SUCCESS:
+                        while True:
+                            try:
+                                data: bytes = await asyncio.wait_for(reader.read(p.SERVER_PACKET_SIZE),
+                                                                     p.BUS_REALTIME_SEARCH_TERM)
+                                isCancel = data.decode().split(p.TASK_SPLIT)[0]
+                                if isCancel == p.USER_BUS_CANCEL:
+                                    msg_result = self.busCancel(userMac=userMac)
+                                    writer.write(msg_result.encode())
+                                    await writer.drain()
+                                    break
+
+                            except asyncio.TimeoutError:
+                                if self.isBusAlarmTime() is True:
+                                    self.AlarmUser(userMac=userMac)
+                                    break
 
             # 클라이언트 위치 확인 안됨
             msg_result = p.USER_LOCATION_FIND_FAIL
@@ -95,19 +130,22 @@ class Server:
         async with server:
             await server.serve_forever()
 
-    def busCheck(self):
+    def busCheck(self, userMac: str, routeNo: str) -> str:
         pass
 
-    def busReservation(self):
+    def busReservation(self, userMac: str, routeNo: str) -> str:
         pass
 
-    def busCancel(self):
+    def busCancel(self, userMac: str) -> str:
         pass
 
-    def isBusReserved(self):
+    def isBusReserved(self) -> bool:
         pass
 
-    def isBusAlarmTime(self):
+    def isBusAlarmTime(self, userMac: str):
+        pass
+
+    def AlarmUser(self, userMac: str):
         pass
 
 

@@ -8,8 +8,8 @@ db = "buddy_db"
 
 
 def createTable() -> None:
-    """ Database.py 내부에 저장된 Config 값을 이용하여 데이터베이스에 접근함
-        이후 테이블 'usertable'과 'busdrivertable' 의 존재 여부에 따라 테이블 초기화 및 생성을 수행함
+    """ Database.py 내부에 저장된 Config 값을 이용하여 데이터베이스에 접근함.
+    이후 테이블 'usertable', 'busdrivertable', 'raspberrytable' 의 존재 여부에 따라 테이블 초기화 및 생성을 수행함
 
     :return: None
     """
@@ -40,7 +40,6 @@ def createTable() -> None:
 
     cur.execute("SHOW TABLES LIKE 'busdrivertable'")
     result = cur.fetchone()
-    print(result)
     flag = 0
 
     if result is not None:
@@ -55,6 +54,25 @@ def createTable() -> None:
     if flag == 0:
         cur.execute("CREATE TABLE busdrivertable("
                     "vehicleno char(12), name char(3), mac char(17)"
+                    ")")
+        conn.commit()
+
+    cur.execute("SHOW TABLES LIKE 'raspberrytable'")
+    result = cur.fetchone()
+    flag = 0
+
+    if result is not None:
+        if "raspberrytable" in result:
+            print("[BUDDY-DB] 이미 raspberrytable이 존재합니다. 테이블 초기화를 하시겠습니까? [Y/N]")
+            print("[BUDDY-DB] INPUT >> ", end='')
+            if "y" == input().lower():
+                cur.execute("DROP TABLE raspberrytable")
+            else:
+                flag = 1
+
+    if flag == 0:
+        cur.execute("CREATE TABLE raspberrytable("
+                    "nodeid char(20), mac char(17), nodenm char(50)"
                     ")")
         conn.commit()
 
@@ -293,6 +311,54 @@ class Database:
 
         return result[0]
 
+    # Raspberry PI Database method
+
+    def getRaspberryNodeID(self, mac_add: str) -> str or None:
+        """데이터베이스에서 해당 Mac 주소를 가지는 Raspberry PI의 nodeid를 반환하는 함수
+
+        :param mac_add: 검색할 Raspberry PI의 Mac 주소
+        :return: str Raspberry PI nodeid 반환 (str : Raspberry PI가 존재할 경우, None : Raspberry PI가 등록되지 않았거나 실패한 경우)
+        """
+
+        try:
+            sql = "SELECT * FROM raspberrytable WHERE mac = %s"
+            self.cur.execute(sql, (mac_add))
+            self.conn.commit()
+            result = self.cur.fetchone()
+        except Exception as e:
+            print("[BUDDY-DB][ERR] Raspberry PI 조회 실패 -> Raspberry PI mac: ", mac_add)
+            print(e.args[0])
+            return None
+
+        print("[BUDDY-DB] Raspberry PI 조회 성공 -> Raspberry PI mac: ", result)
+        if result is not None:
+            result = result[0]
+
+        return result
+
+    def getRaspberryMAC(self, nodeid: str) -> str or None:
+        """데이터베이스에서 해당 nodeid를 가지는 Raspberry PI의 MAC 주소를 반환하는 함수
+
+        :param nodeid: 검색할 Raspberry PI의 nodeid
+        :return: str Raspberry PI MAC 주소 반환 (str : Raspberry PI가 존재할 경우, None : Raspberry PI가 등록되지 않았거나 실패한 경우)
+        """
+
+        try:
+            sql = "SELECT * FROM raspberrytable WHERE nodeid = %s"
+            self.cur.execute(sql, (nodeid))
+            self.conn.commit()
+            result = self.cur.fetchone()
+        except Exception as e:
+            print("[BUDDY-DB][ERR] Raspberry PI 조회 실패 -> Raspberry PI nodeid: ", nodeid)
+            print(e.args[0])
+            return None
+
+        print("[BUDDY-DB] Raspberry PI 조회 성공 -> Raspberry PI nodeid: ", result)
+        if result is not None:
+            result = result[1]
+
+        return result
+
     def __del__(self) -> None:
         """ Database 클래스 소멸자. DB 인터페이스 객체가 사라짐에 따라
             데이터베이스를 저장하고 정상적으로 종료함
@@ -309,21 +375,29 @@ class Database:
 
 
 if __name__ == "__main__":
+    pass
     #createTable()
-    db = Database()
+    #db = Database()
 
-    print("\n")
+    #print("\n")
 
-    db.addUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
-    db.addUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
-    print(db.getUserMac('홍길동', '01012341234'))
-    db.removeUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
-    db.removeUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
+    #db.addUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
+    #db.addUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
+    #print(db.getUserMac('홍길동', '01012341234'))
+    #db.removeUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
+    #db.removeUser("홍길동", "01012341234", "AA:AA:AA:AA:AA:AA")
 
-    print("\n")
+    #print("\n")
 
-    db.addBusDriver('경기17바1234', '기사님', 'BB:BB:BB:BB:BB:BB')
-    db.addBusDriver('경기17바1234', '기사님', 'BB:BB:BB:BB:BB:BB')
-    print(db.getBusDriverMac('경기17바1234', '기사님'))
-    db.removeBusDriver('경기17바1234', '기사님', 'BB:BB:BB:BB:BB:BB')
-    db.removeBusDriver('경기17바1234', '기사님', 'BB:BB:BB:BB:BB:BB')
+    #db.addBusDriver('경기17바1234', '기사님', 'BB:BB:BB:BB:BB:BB')
+    #db.addBusDriver('경기17바1234', '기사님', 'BB:BB:BB:BB:BB:BB')
+    #print(db.getBusDriverMac('경기17바1234', '기사님'))
+    #db.removeBusDriver('경기17바1234', '기사님', 'BB:BB:BB:BB:BB:BB')
+    #db.removeBusDriver('경기17바1234', '기사님', 'BB:BB:BB:BB:BB:BB')
+
+    #print("\n")
+
+    #node_c = db.getRaspberryNodeID('CC:CC:CC:CC:CC:CC')
+    #node_d = db.getRaspberryNodeID('DD:DD:DD:DD:DD:DD')
+    #db.getRaspberryMAC(node_c)
+    #db.getRaspberryMAC(node_d)

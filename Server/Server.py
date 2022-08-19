@@ -50,8 +50,6 @@ class Server:
         self.ip = "localhost"
         self.port = 7777
         self.packetSize = 1024
-        self.busReserveDict = {}
-        self.userBusStopDict = {}
         self.userMgr = UserManager.UserManager()
 
     async def loginHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):

@@ -6,10 +6,10 @@ class UserManager:
 
     def __init__(self):
         self.DB = Database.Database()
-        self.busReserveDict = {}
-        self.userBusStopDict = {}
+        self.busReserveDict = {}  #busReserveDict[user_mac] = [node_id, route_id]
+        self.userBusStopDict = {}  #userBusStopDict[user_mac] = node_id
 
-    def register(self, name: str, phone_num: str, mac_add: str) -> str:
+    def userRegister(self, name: str, phone_num: str, mac_add: str) -> str:
         result = self.DB.addUser(name=name, phone_num=phone_num, mac_add=mac_add)
 
         if result is True:
@@ -19,7 +19,7 @@ class UserManager:
 
         return msg
 
-    def login(self, name: str, phone_num: str, mac_add: str) -> str:
+    def userLogin(self, name: str, phone_num: str, mac_add: str) -> str:
         result = self.DB.isUserExist(name=name, phone_num=phone_num, mac_add=mac_add)
 
         if result == 1:
@@ -33,14 +33,18 @@ class UserManager:
 
         return msg
 
-    def setUserPlace(self):
-        pass
+    def setUserLocation(self, user_mac: str, node_id: str) -> None:
+        self.userBusStopDict[user_mac] = node_id
 
-    def setUserBus(self):
-        pass
+    def removeUserLocation(self, user_mac: str) -> None:
+        self.userBusStopDict.__delitem__(user_mac)
 
-    def getUserMac(self):
-        pass
+    def setUserBus(self, user_mac: str, node_id: str, route_id: str) -> None:
+        if user_mac not in self.busReserveDict.keys():
+            self.busReserveDict[user_mac] = [node_id, route_id]
 
-    def getUserPlace(self):
-        pass
+    def getUserLocation(self, mac_add: str) -> str or None:
+        if len(self.userBusStopDict) > 0:
+            if mac_add in self.userBusStopDict.keys():
+                return self.userBusStopDict[mac_add]
+        return None

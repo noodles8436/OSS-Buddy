@@ -12,7 +12,10 @@ class BusManager:
     def addBusRoute(self, cityCode: str, routeId: str, routeNo: str, vehicleNo: str) -> bool:
         pass
 
-    def getBusRouteList(self):
+    def getBusList(self):
+        pass
+
+    def getSpecificBusArrival(self, routeNo: str) -> list:
         pass
 
     def isBusThrgh(self, routeNo: str) -> dict:

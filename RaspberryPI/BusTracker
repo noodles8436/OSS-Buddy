@@ -19,6 +19,9 @@ URL_getCtyCodeList = \
 
 baseParams = "?ServiceKey=" + APIEncodingKey + "&_type=xml"
 
+# API URLS : 국토교통부 버스정류장정보 API
+getSttnNoList = \
+    "http://apis.data.go.kr/1613000/BusSttnInfoInqireService/getSttnNoList"
 
 class BusTracker:
 
@@ -145,6 +148,35 @@ class BusTracker:
             result['bus_' + str(busItem['nodeord'])] = busItem
 
         result['locations'] = locations
+
+        return result
+
+    # 버스 정류장 정보 관련
+
+    def getSttnNoList(self, cityCode: str, nodeNm: str, nodeNo: str) -> dict or None:
+        queryParams = baseParams + "&cityCode=" + cityCode + "&nodeNm=" + nodeNm + \
+                      "&nodeNo=" + nodeNo + "&numOfRows=-1" + "&pageNo=1"
+
+        xml = requests.get(URL_getRouteAcctoBusLcList + queryParams).text
+        root = bs(xml, features="xml")
+        resultCode = root.find("resultCode").get_text()
+        resultMsg = root.find("resultMsg").get_text()
+
+        if resultCode != "00":
+            print("[BusTracker][ERR] getAllBusinRoute resultCode : " + resultCode)
+            print("[BusTracker][ERR] ERR Msg : " + resultMsg)
+            return None
+
+        result = {}
+        items = root.select("item")
+        for item in items:
+            nodeItem = dict()
+            nodeItem['gpslati'] = float(item.find('gpslati').get_text())
+            nodeItem['gpslong'] = float(item.find('gpslong').get_text())
+            nodeItem['nodeid'] = item.find('nodeid').get_text()
+            nodeItem['nodenm'] = item.find('nodenm').get_text()
+            nodeItem['nodeno'] = item.find('nodeno').get_text()
+            result[nodeItem['nodeid']] = nodeItem
 
         return result
 

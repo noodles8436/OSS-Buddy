@@ -17,11 +17,14 @@ URL_getRouteAcctoBusLcList = \
 URL_getCtyCodeList = \
     "http://apis.data.go.kr/1613000/BusLcInfoInqireService/getCtyCodeList"
 
-baseParams = "?ServiceKey=" + APIEncodingKey + "&_type=xml"
-
 # API URLS : 국토교통부 버스정류장정보 API
-getSttnNoList = \
+URL_getSttnNoList = \
     "http://apis.data.go.kr/1613000/BusSttnInfoInqireService/getSttnNoList"
+
+URL_getSttnThrghRouteList = \
+    "http://apis.data.go.kr/1613000/BusSttnInfoInqireService/getSttnThrghRouteList"
+
+baseParams = "?ServiceKey=" + APIEncodingKey + "&_type=xml"
 
 class BusTracker:
 
@@ -157,7 +160,7 @@ class BusTracker:
         queryParams = baseParams + "&cityCode=" + cityCode + "&nodeNm=" + nodeNm + \
                       "&nodeNo=" + nodeNo + "&numOfRows=-1" + "&pageNo=1"
 
-        xml = requests.get(URL_getRouteAcctoBusLcList + queryParams).text
+        xml = requests.get(URL_getSttnNoList + queryParams).text
         root = bs(xml, features="xml")
         resultCode = root.find("resultCode").get_text()
         resultMsg = root.find("resultMsg").get_text()
@@ -177,6 +180,33 @@ class BusTracker:
             nodeItem['nodenm'] = item.find('nodenm').get_text()
             nodeItem['nodeno'] = item.find('nodeno').get_text()
             result[nodeItem['nodeid']] = nodeItem
+
+        return result
+
+    def getSttnThrghRouteList(self, cityCode: str, nodeId: str) -> dict or None:
+        queryParams = baseParams + "&cityCode=" + cityCode + "&nodeid=" + nodeId + \
+                      "&numOfRows=-1" + "&pageNo=1"
+
+        xml = requests.get(URL_getSttnThrghRouteList + queryParams).text
+        root = bs(xml, features="xml")
+        resultCode = root.find("resultCode").get_text()
+        resultMsg = root.find("resultMsg").get_text()
+
+        if resultCode != "00":
+            print("[BusTracker][ERR] getAllBusinRoute resultCode : " + resultCode)
+            print("[BusTracker][ERR] ERR Msg : " + resultMsg)
+            return None
+
+        result = {}
+        items = root.select("item")
+        for item in items:
+            busItem = dict()
+            busItem['routeid'] = item.find('routeid').get_text()
+            busItem['routeno'] = item.find('routeno').get_text()
+            busItem['routetp'] = item.find('routetp').get_text()
+            busItem['endnodenm'] = item.find('endnodenm').get_text()
+            busItem['startnodenm'] = item.find('startnodenm').get_text()
+            result[busItem['routeno']] = busItem
 
         return result
 

@@ -33,7 +33,7 @@ class configManager:
 
         return
 
-    def setConfig(self, option, value):
+    def setValue(self, option, value):
         """This function changes the setting value.
         :param str option: json key-value you want to change
         :param value: value you want to set
@@ -46,9 +46,22 @@ class configManager:
         self.saveJSON()
         return
 
+    def isKey(self, key):
+        if key in self.config.keys():
+            return True
+        return False
+
+    def getValue(self, key):
+        if self.isKey(key):
+            return self.config[key]
+        return None
+
+    def removeKey(self, key):
+        if self.isKey(key):
+            del self.config[key]
+
     def getConfig(self):
         """This function returns a self.config object."""
-
         return self.config
 
     def saveJSON(self):

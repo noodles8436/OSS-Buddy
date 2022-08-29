@@ -101,6 +101,7 @@ class BusTracker:
         result = {}
         result['routeid'] = root.find('routeid').get_text()
         result['totalCount'] = int(root.find('totalCount').get_text())
+        result['nodeDict'] = dict()
 
         items = root.select("item")
         for item in items:
@@ -112,7 +113,7 @@ class BusTracker:
             #nodeItem['nodeno'] = int(item.find('nodeno').get_text())
             nodeItem['nodeord'] = int(item.find('nodeord').get_text())
             nodeItem['nodenm'] = item.find('nodenm').get_text()
-            result['node_' + str(nodeItem['nodeord'])] = nodeItem
+            result['nodeDict'][str(nodeItem['nodeord'])] = nodeItem
 
         return result
 
@@ -135,6 +136,7 @@ class BusTracker:
         result = {}
         result['routenm'] = root.find('routenm').get_text()
         result['totalCount'] = int(root.find('totalCount').get_text())
+        result['busDict'] = dict()
 
         items = root.select("item")
         locations = []
@@ -148,7 +150,7 @@ class BusTracker:
             busItem['nodenm'] = item.find('nodenm').get_text()
             busItem['routetp'] = item.find('routetp').get_text()
             busItem['vehicleno'] = item.find('vehicleno').get_text()
-            result['bus_' + str(busItem['nodeord'])] = busItem
+            result['busDict'][str(busItem['nodeord'])] = busItem
 
         result['locations'] = locations
 

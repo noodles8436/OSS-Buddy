@@ -83,16 +83,12 @@ class BusManager:
         return None
 
     def getSpecificBusArrival(self, routeNo: str) -> list or None:
-        busdata = self.getBusDict()
-        if busdata is None:
-            return None
 
-        if routeNo not in self.getBusRouteNoList():
+        if self.isBusThrgh(routeNo=routeNo) is False:
             return None
 
         nodeId = self.getNodeId()
         nodeOrd = -1
-
         cityCode = self.getBusCityCodeFromNo(routeNo=routeNo)
         routeId = self.getBusRouteIdFromNo(routeNo=routeNo)
 
@@ -105,31 +101,31 @@ class BusManager:
             if busThrghSttnList['nodeDict'][_nodeOrd]['nodeid'] == nodeId:
                 nodeOrd = _nodeOrd
                 break
-                
+
         if nodeOrd == -1:
             return None
-        
+
         getAllBusinRoute = self.BusTracker.getAllBusinRoute(cityCode=cityCode, routeId=routeId)['busDict']
-        
+
         nodeArrivalCount = -1
         busitemKey = None
-        
+
         for key in getAllBusinRoute.keys():
-            
+
             diff = nodeOrd - getAllBusinRoute[key]['nodeord']
-            
+
             if nodeArrivalCount == -1:
                 nodeArrivalCount = diff
                 busitemKey = key
             elif nodeArrivalCount > diff:
                 nodeArrivalCount = diff
                 busitemKey = key
-                
+
         if nodeArrivalCount == -1:
             return None
-                
+
         result = [nodeArrivalCount, getAllBusinRoute[busitemKey]['vehicleNo']]
-        
+
         return result
 
     def getCityCode(self) -> str:
@@ -147,12 +143,13 @@ class BusManager:
     def getBusDict(self) -> dict or None:
         return self.BusData.getValue('busDict')
 
+    def isBusThrgh(self, routeNo: str) -> bool:
+        if routeNo in self.getBusRouteNoList():
+            return True
+        return False
 
-    def isBusThrgh(self, routeNo: str) -> dict:
-        pass
-
-    def getBusThrgh(self, routeNo: str) -> dict:
-        pass
-
-    def removeBusRoute(self, cityCode: str, routeId: str) -> bool:
-        pass
+    def removeBusRoute(self, routeNo: str) -> bool:
+        if self.isBusThrgh(routeNo=routeNo):
+            self.BusData.removeKey(routeNo)
+            return True
+        return False

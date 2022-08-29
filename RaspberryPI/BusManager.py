@@ -15,16 +15,32 @@ class BusManager:
 
         pass
 
-    def resetBusStop(self, new_CityCode: str, new_NodeId: str):
+    def resetBusStop(self, new_CityCode: str, new_NodeId: str) -> None:
         self.BusData.setValue('cityCode', new_CityCode)
         self.BusData.setValue('nodeID', new_NodeId)
         print(f'[RaspBerry PI] cityCode : {new_CityCode} , nodeID : {new_NodeId} 로 설정되었습니다.')
 
     def addBusRoute(self, cityCode: str, routeId: str, routeNo: str, vehicleNo: str) -> bool:
-        pass
+        
+        busdata = self.BusData.getValue('busList')
+        if busdata is None:
+            busdata = dict()
+        
+        newBus = dict()
+        newBus['cityCode'] = cityCode
+        newBus['routeId'] = routeId
+        newBus['vehicleNo'] = vehicleNo
+        
+        busdata[routeNo] = newBus
+        self.BusData.setValue('busList', busdata)
+        
+        return True
 
-    def getBusList(self):
-        pass
+    def getBusRouteNoList(self) -> list:
+        busdata = self.BusData.getValue('busList')
+        if busdata is None:
+            return list()
+        return busdata.keys()
 
     def getSpecificBusArrival(self, routeNo: str) -> list:
         pass

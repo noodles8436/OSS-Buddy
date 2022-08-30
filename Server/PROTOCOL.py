@@ -85,16 +85,31 @@ DISCONNECT_SERVER = "08" + TASK_SPLIT + "00"
 
 
 
-# (RaspBerry 연결) 30;nodeid;
+# (RaspBerry 연결) 30;nodeid;위도;경도
 RASP_INFO_LOGIN = "30"
 
 # (Res. RaspBerry 연결) 성공 = 30;00 or 실패 = 30;01
 RASP_INFO_LOGIN_SUCCESS = RASP_INFO_LOGIN + TASK_SPLIT + "00"
 RASP_INFO_LOGIN_FAIL = RASP_INFO_LOGIN + TASK_SPLIT + "01"
 
+# (RaspBerry 버스 리스트 요청)
+RASP_REQ_BUS_LIST = "31"
 
+# (RaspBerry 버스 리스트 전부 요청)
+# RASP_REQ_BUS_LIST_RESULT = 31;버스 개수;1번 버스:1번 버스 남은 노드:1번 버스 남은 시간;2번 버스...
 
+# (Raspberry 버스 가능 확인)
+RASP_CHECK_BUS = "32"
 
+# (Res. Raspberry 버스 가능 확인)
+RASP_CHECK_BUS_POSSIBLE = RASP_CHECK_BUS + TASK_SPLIT + "00"
+RASP_CHECK_BUS_IMPOSSIBLE = RASP_CHECK_BUS + TASK_SPLIT + "01"
+
+# (Raspberry 특정 최근접 버스 확인)
+RASP_CHECK_ARRIVAL = "33" # ;route_No
+
+# (Res. Raspberry 특정 최근접 버스 확인)
+#RASP_CHECK_ARRIVAL = 33;남은 노드;버스 번호판
 
 # (RaspBerry 연결) 40;nodeid;
 RASP_DETECTOR_LOGIN = "40"

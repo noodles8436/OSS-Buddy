@@ -11,8 +11,12 @@ class RaspMain:
         self.Detector = Detector.Detector()
         self.host = host
         self.port = port
+        self.serverTask = asyncio.gather(self.busDetector(), self.infoProvider())
 
-    async def busDetector(self):
+    def start(self):
+        asyncio.run(self.serverTask)
+
+    async def busDetector(self) -> None:
         reader: asyncio.StreamReader
         writer: asyncio.StreamWriter
 
@@ -46,7 +50,7 @@ class RaspMain:
                     writer.close()
                     await writer.wait_closed()
 
-    async def infoProvider(self):
+    async def infoProvider(self) -> None:
         reader: asyncio.StreamReader
         writer: asyncio.StreamWriter
 
@@ -82,4 +86,5 @@ class RaspMain:
 
 
 if __name__ == "__main__":
-    pass
+    main = RaspMain(host=p.SERVER_IP, port=p.SERVER_PORT)
+    main.start()

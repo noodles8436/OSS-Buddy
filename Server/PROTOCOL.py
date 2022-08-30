@@ -85,7 +85,7 @@ DISCONNECT_SERVER = "08" + TASK_SPLIT + "00"
 
 
 
-# (RaspBerry 연결) 30;nodeid;위도;경도
+# (RaspBerry 연결) 30;nodeid;lati;long
 RASP_INFO_LOGIN = "30"
 
 # (Res. RaspBerry 연결) 성공 = 30;00 or 실패 = 30;01

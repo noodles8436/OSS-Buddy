@@ -4,7 +4,7 @@ import BusTracker
 
 class BusManager:
 
-    def __init__(self):
+    def setUp(self) -> bool:
         self.BusData = FileManager.configManager("./buddy_bus.json")
         self.BusTracker = BusTracker.BusTracker()
         if self.BusData.isKey("cityCode") is False or self.BusData.isKey("nodeId") is False:
@@ -17,16 +17,29 @@ class BusManager:
             nodeNo = input()
             print('[RaspBerry PI] nodeNm : ', end='')
             nodeNm = input()
-            self.resetBusStop(new_CityCode=cityCode, new_NodeId=nodeID,
+            return self.resetBusStop(new_CityCode=cityCode, new_NodeId=nodeID,
                               new_NodeNo=nodeNo, new_NodeNm=nodeNm)
 
-    def resetBusStop(self, new_CityCode: str, new_NodeId: str, new_NodeNo: str, new_NodeNm: str) -> None:
+        return True
+
+    def resetBusStop(self, new_CityCode: str, new_NodeId: str, new_NodeNo: str, new_NodeNm: str) -> bool:
+
+        result = self.BusTracker.getSttnNoList(cityCode=new_CityCode, nodeNm=new_NodeNm, nodeNo=new_NodeNo)
+
+        if result is None:
+            print("[RaspBerry PI][ERR] 위치 정보가 잘못되었습니다!")
+            return False
+
         self.BusData.setValue('cityCode', new_CityCode)
         self.BusData.setValue('nodeId', new_NodeId)
         self.BusData.setValue('nodeNo', new_NodeNo)
         self.BusData.setValue('nodeNm', new_NodeNm)
+        self.BusData.setValue('lati', result[new_NodeId]['gpslati'])
+        self.BusData.setValue('long', result[new_NodeId]['gpslong'])
         print(f'[RaspBerry PI] cityCode : {new_CityCode} , nodeId : {new_NodeId}, nodeNo : {new_NodeNo},'
               f' nodeNm : {new_NodeNm}로 설정되었습니다.')
+
+        return True
 
     def addBusRoute(self, cityCode: str, routeId: str, routeNo: str, vehicleNo: str) -> bool:
 
@@ -103,16 +116,20 @@ class BusManager:
         nodeArrivalCount = -1
         busitemKey = None
 
-        for key in getAllBusinRoute.keys():
+        if nodeOrd == 0:
+            busitemKey = min(getAllBusinRoute.keys())
 
-            diff = nodeOrd - getAllBusinRoute[key]['nodeord']
+        else:
+            for key in getAllBusinRoute.keys():
 
-            if nodeArrivalCount == -1 and diff > limitFastNode:
-                nodeArrivalCount = diff
-                busitemKey = key
-            elif nodeArrivalCount > diff > limitFastNode:
-                nodeArrivalCount = diff
-                busitemKey = key
+                diff = nodeOrd - getAllBusinRoute[key]['nodeord']
+
+                if nodeArrivalCount == -1 and diff > limitFastNode:
+                    nodeArrivalCount = diff
+                    busitemKey = key
+                elif nodeArrivalCount > diff > limitFastNode:
+                    nodeArrivalCount = diff
+                    busitemKey = key
 
         if nodeArrivalCount == -1:
             return None
@@ -132,6 +149,10 @@ class BusManager:
 
     def getNodeNo(self) -> str:
         return self.BusData.getValue('nodeNm')
+
+    def getNodeLatiLong(self) -> [float, float]:
+        return [self.BusData.getValue('lati'), self.BusData.getValue('long')]
+
 
     def getBusDict(self) -> dict or None:
         return self.BusData.getValue('busDict')

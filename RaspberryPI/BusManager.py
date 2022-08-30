@@ -37,7 +37,6 @@ class BusManager:
         newBus = dict()
         newBus['cityCode'] = cityCode
         newBus['routeId'] = routeId
-        newBus['vehicleNo'] = vehicleNo
 
         busdata[routeNo] = newBus
         self.setBusDict(busdata)
@@ -61,7 +60,7 @@ class BusManager:
 
     def getBusFromNo(self, routeNo: str) -> dict() or None:
         if routeNo in self.getBusRouteIdFromNo():
-            return self.getBusFromNo(routeNo)
+            return self.getBusData()[routeNo]
         return None
 
     def getBusRouteIdFromNo(self, routeNo: str) -> str or None:
@@ -70,19 +69,13 @@ class BusManager:
             return busdata['routeId']
         return None
 
-    def getBusVehicleNoFromNo(self, routeNo: str) -> str or None:
-        busdata = self.getBusFromNo(routeNo)
-        if busdata is not None:
-            return busdata['vehicleNo']
-        return None
-
     def getBusCityCodeFromNo(self, routeNo: str) -> str or None:
         busdata = self.getBusFromNo(routeNo)
         if busdata is not None:
             return busdata['cityCode']
         return None
 
-    def getSpecificBusArrival(self, routeNo: str) -> list or None:
+    def getSpecificBusFastArrival(self, routeNo: str, limitFastNode=2) -> list or None:
 
         if self.isBusThrgh(routeNo=routeNo) is False:
             return None
@@ -114,10 +107,10 @@ class BusManager:
 
             diff = nodeOrd - getAllBusinRoute[key]['nodeord']
 
-            if nodeArrivalCount == -1:
+            if nodeArrivalCount == -1 and diff > limitFastNode:
                 nodeArrivalCount = diff
                 busitemKey = key
-            elif nodeArrivalCount > diff:
+            elif nodeArrivalCount > diff > limitFastNode:
                 nodeArrivalCount = diff
                 busitemKey = key
 

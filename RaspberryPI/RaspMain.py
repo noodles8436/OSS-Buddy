@@ -40,8 +40,16 @@ class RaspMain:
                 print("[Rasp Detector] Server Login Success")
 
                 while True:
-                    # Detecting Bus and send to Server
-                    pass
+                    routeNo = self.Detector.detect()
+                    msg = ""
+                    if routeNo is None:
+                        msg = p.RASP_DETECTOR_BUS_NONE.encode()
+                    else:
+                        msg = p.RASP_DETECTOR_BUS_CATCH + p.TASK_SPLIT \
+                              + self.busManager.getBusRouteIdFromNo(routeNo=routeNo) + p.TASK_SPLIT + routeNo
+
+                    writer.write(msg)
+                    await writer.drain()
 
             except Exception as e:
                 print(e.args[0])

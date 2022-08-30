@@ -5,7 +5,7 @@ import BusTracker
 class BusManager:
 
     def __init__(self):
-        self.BusData = FileManager.configManager()
+        self.BusData = FileManager.configManager("./buddy_bus.json")
         self.BusTracker = BusTracker.BusTracker()
         if self.BusData.isKey("cityCode") is False or self.BusData.isKey("nodeId") is False:
             print('[RaspBerry PI][ERR] 초기값을 설정해야 합니다!')

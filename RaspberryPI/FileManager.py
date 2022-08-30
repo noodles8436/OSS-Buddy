@@ -1,4 +1,3 @@
-PATH = "./Buddy_config.json"
 import json, os
 
 
@@ -9,25 +8,24 @@ class configManager:
     config = dict()
     """It is a dict object that stores the setting value of the client program."""
 
-    def __init__(self):
+    def __init__(self, PATH):
         """A function to initialize the configManager class
         Check if the config.json file already exists and read the setting values from the config.json file.
         If there is no config.json file, create a new one and save it to the config.json file
         using the initial values at the top of FileManager.py.
         """
 
+        self.PATH = PATH
+
         # if there is no config.json file
-        if os.path.isfile(PATH) is not True:
+        if os.path.isfile(self.PATH) is not True:
             # Create config.json file
-            fd = open(PATH, 'w', encoding='UTF-8')
+            fd = open(self.PATH, 'w', encoding='UTF-8')
             fd.write("{}")
             fd.close()
 
-            # Store initial config datas in new created config.json file
-            self.recoveryOptions()
-
         # read config.json and store config.json data in self.config ( dict variable ) using json.load()
-        with open(PATH, 'r', encoding="UTF-8") as pf:
+        with open(self.PATH, 'r', encoding="UTF-8") as pf:
             self.config = json.load(pf)
             pf.close()
 
@@ -67,6 +65,6 @@ class configManager:
     def saveJSON(self):
         """This function stores the self.config object in the form of json in the config.json file."""
 
-        with open(PATH, 'w', encoding='UTF-8') as pf:
+        with open(self.PATH, 'w', encoding='UTF-8') as pf:
             json.dump(self.config, pf, indent='\t', ensure_ascii=False)
         pf.close()

@@ -8,6 +8,8 @@ class RaspMain:
 
     def __init__(self, host: str, port: int):
         self.busManager = BusManager.BusManager()
+        if self.busManager.setUp() is False:
+            return
         self.Detector = Detector.Detector()
         self.host = host
         self.port = port
@@ -68,22 +70,37 @@ class RaspMain:
                 reader, writer = await asyncio.open_connection(host=self.host, port=self.port)
                 print("[Rasp INFO] Server Connected")
 
-                msg = p.RASP_INFO_LOGIN + p.TASK_SPLIT + self.busManager.getNodeId()
+                lati_long = self.busManager.getNodeLatiLong()
+
+                msg = p.RASP_INFO_LOGIN + p.TASK_SPLIT + self.busManager.getNodeId() + \
+                      p.TASK_SPLIT + str(lati_long[0]) + p.TASK_SPLIT + str(lati_long[1])
+
                 writer.write(msg.encode())
                 await writer.drain()
                 print("[Rasp INFO] Try to Login Server")
 
-                recv = await reader.read(p.SERVER_PACKET_SIZE)
+                recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
+                msg: str = recv.decode()
 
                 if recv != p.RASP_INFO_LOGIN_SUCCESS:
+                    await writer.drain()
+                    writer.close()
+                    await writer.wait_closed()
                     print("[Rasp INFO][ERR] Server Login Failed!")
                     continue
 
                 print("[Rasp INFO] Server Login Success")
 
                 while True:
-                    # Repeat : listening server and answer to server
-                    pass
+                    recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
+                    msg = recv.decode().split(p.TASK_SPLIT)
+
+                    if msg[0] == p.RASP_REQ_BUS_LIST:
+                        pass
+                    elif msg[0] == p.RASP_CHECK_BUS:
+                        pass
+                    elif msg[0] == p.RASP_CHECK_ARRIVAL:
+                        pass
 
             except Exception as e:
                 print(e.args[0])

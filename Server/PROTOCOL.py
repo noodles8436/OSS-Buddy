@@ -15,11 +15,6 @@ TASK_SPLIT = ";"
 
 # (버스기사 알림) 22;정거장이름;남은 정거장 수
 
-# (RaspBerry 연결) 30;nodeid;mac
-# (Res. RaspBerry 연결) 성공 = 30;00 or 실패 = 30;01
-
-# (RaspBerry 초접근 버스 안내) 32;routeid;routeNo
-
 # (RaspBerry 주변 새로은 MAC 유저 확인 ) 33;mac;nodeid
 # (Res. RaspBerry 주변 새로은 MAC 유저 확인 ) 있는 유저 = 33;00 or 없는 유저 = 33;01
 
@@ -87,3 +82,25 @@ KICK_USER = "07" + TASK_SPLIT + "00"
 
 # (클라가 서버를 로그아웃) 08;00
 DISCONNECT_SERVER = "08" + TASK_SPLIT + "00"
+
+
+
+# (RaspBerry 연결) 30;nodeid;
+RASP_INFO_LOGIN = "30"
+
+# (Res. RaspBerry 연결) 성공 = 30;00 or 실패 = 30;01
+RASP_INFO_LOGIN_SUCCESS = RASP_INFO_LOGIN + TASK_SPLIT + "00"
+RASP_INFO_LOGIN_FAIL = RASP_INFO_LOGIN + TASK_SPLIT + "01"
+
+
+
+
+
+# (RaspBerry 연결) 40;nodeid;
+RASP_DETECTOR_LOGIN = "40"
+
+# (Res. RaspBerry 연결) 성공 = 40;00 or 실패 = 40;01
+RASP_DETECTOR_LOGIN_SUCCESS = RASP_DETECTOR_LOGIN + TASK_SPLIT + "00"
+RASP_DETECTOR_LOGIN_FAIL = RASP_DETECTOR_LOGIN + TASK_SPLIT + "01"
+
+# (RaspBerry 초접근 버스 안내) 41;routeid;routeNo

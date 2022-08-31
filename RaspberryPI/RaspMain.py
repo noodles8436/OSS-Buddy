@@ -1,7 +1,5 @@
 import asyncio
-
 from typing import List
-
 import Server.PROTOCOL as p
 import BusManager
 import Detector
@@ -100,17 +98,41 @@ class RaspMain:
 
                     if msg[0] == p.RASP_REQ_BUS_LIST:
                         _busDict = self.busManager.getAllBusFastArrival()
-                        msg: str = p.RASP_REQ_BUS_LIST + p.TASK_SPLIT + str(len(_busDict.keys()))
+                        _sendMsg: str = p.RASP_REQ_BUS_LIST + p.TASK_SPLIT + str(len(_busDict.keys()))
                         for _routeNo in _busDict.keys():
-                            msg += p.TASK_SPLIT + _routeNo + ":" + _busDict[_routeNo][0]
+                            _sendMsg += p.TASK_SPLIT + _routeNo + ":" + _busDict[_routeNo][0]
 
-                        writer.write(msg.encode())
+                        writer.write(_sendMsg.encode())
                         await writer.drain()
 
                     elif msg[0] == p.RASP_CHECK_BUS:
-                        pass
+                        _sendMsg: str = ""
+                        if len(msg) == 2:
+                            _routeNo = msg[1]
+                            if self.busManager.isBusThrgh(_routeNo):
+                                _sendMsg = p.RASP_CHECK_BUS_POSSIBLE
+                            else:
+                                _sendMsg = p.RASP_CHECK_BUS_IMPOSSIBLE
+                        else:
+                            _sendMsg = p.RASP_CHECK_BUS_IMPOSSIBLE
+
+                        writer.write(_sendMsg.encode())
+                        await writer.drain()
+
                     elif msg[0] == p.RASP_CHECK_ARRIVAL:
-                        pass
+
+                        _sendMsg: str = ""
+
+                        if len(msg) == 2:
+                            _routeNo = msg[1]
+                            _busArrival = self.busManager.getSpecificBusFastArrival(routeNo=_routeNo)
+                            _sendMsg = p.RASP_CHECK_ARRIVAL + p.TASK_SPLIT + _busArrival[0] \
+                                       + p.TASK_SPLIT + _busArrival[1]
+                        else:
+                            _sendMsg = p.RASP_CHECK_ARRIVAL + p.TASK_SPLIT + "-1" + p.TASK_SPLIT + "-1"
+
+                        writer.write(_sendMsg.encode())
+                        await writer.drain()
 
             except Exception as e:
                 print(e.args[0])

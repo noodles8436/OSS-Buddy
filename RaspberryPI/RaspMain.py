@@ -1,4 +1,7 @@
 import asyncio
+
+from typing import List
+
 import Server.PROTOCOL as p
 import BusManager
 import Detector
@@ -82,7 +85,7 @@ class RaspMain:
                 recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
                 msg: str = recv.decode()
 
-                if recv != p.RASP_INFO_LOGIN_SUCCESS:
+                if msg != p.RASP_INFO_LOGIN_SUCCESS:
                     await writer.drain()
                     writer.close()
                     await writer.wait_closed()
@@ -93,10 +96,17 @@ class RaspMain:
 
                 while True:
                     recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
-                    msg = recv.decode().split(p.TASK_SPLIT)
+                    msg: List[str] = recv.decode().split(p.TASK_SPLIT)
 
                     if msg[0] == p.RASP_REQ_BUS_LIST:
-                        pass
+                        _busDict = self.busManager.getAllBusFastArrival()
+                        msg: str = p.RASP_REQ_BUS_LIST + p.TASK_SPLIT + str(len(_busDict.keys()))
+                        for _routeNo in _busDict.keys():
+                            msg += p.TASK_SPLIT + _routeNo + ":" + _busDict[_routeNo][0]
+
+                        writer.write(msg.encode())
+                        await writer.drain()
+
                     elif msg[0] == p.RASP_CHECK_BUS:
                         pass
                     elif msg[0] == p.RASP_CHECK_ARRIVAL:

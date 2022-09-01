@@ -15,7 +15,7 @@ class Server:
         data: bytes = await reader.read(self.packetSize)
         msg = data.decode().split(p.TASK_SPLIT)
 
-        if msg[0] == p.USER_REGISTER:
+        if msg[0] == p.USER_REGISTER:  # User Register
             if len(msg) == 4:
                 msg_result = self.userMgr.userRegister(name=msg[1], phone_num=msg[2], mac_add=msg[3])
             else:
@@ -42,7 +42,10 @@ class Server:
         elif msg[0] == "21":  # Bus Driver Login
             pass
 
-        elif msg[0] == "30":  # Raspberry PI Connection
+        elif msg[0] == "30":  # Raspberry PI InfoProvider Connection
+            pass
+
+        elif msg[0] == "40":  # Raspberry PI Detector Connection
             pass
 
         writer.close()

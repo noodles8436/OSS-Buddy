@@ -18,7 +18,7 @@ class BusManager:
             print('[RaspBerry PI] nodeNm : ', end='')
             nodeNm = input()
             return self.resetBusStop(new_CityCode=cityCode, new_NodeId=nodeID,
-                              new_NodeNo=nodeNo, new_NodeNm=nodeNm)
+                                     new_NodeNo=nodeNo, new_NodeNm=nodeNm)
 
         return True
 
@@ -88,6 +88,22 @@ class BusManager:
             return busdata['cityCode']
         return None
 
+    def getBusMaxNodeFromNo(self, routeNo: str) -> int:
+
+        _cityCode = self.getBusCityCodeFromNo(routeNo=routeNo)
+        _routeId = self.getBusRouteIdFromNo(routeNo=routeNo)
+
+        if _cityCode is None or _routeId is None:
+            return -1
+
+        _sttnList = self.BusTracker.getBusThrghSttnList(self.getBusCityCodeFromNo(routeNo=routeNo),
+                                                        self.getBusRouteIdFromNo(routeNo=routeNo))
+
+        if _sttnList is None:
+            return -2
+
+        return len(_sttnList['nodeDict'].keys()) - 1
+
     def getSpecificBusFastArrival(self, routeNo: str, limitFastNode=2) -> list or None:
 
         if self.isBusThrgh(routeNo=routeNo) is False:
@@ -117,7 +133,12 @@ class BusManager:
         busitemKey = None
 
         if nodeOrd == 0:
-            busitemKey = min(getAllBusinRoute.keys())
+            if min(getAllBusinRoute.keys()) == 0:
+                busitemKey = 0
+                nodeArrivalCount = 0
+            else:
+                busitemKey = max(getAllBusinRoute.keys())
+                nodeArrivalCount = self.getBusMaxNodeFromNo(routeNo=routeNo) - busitemKey
 
         else:
             for key in getAllBusinRoute.keys():
@@ -138,6 +159,13 @@ class BusManager:
 
         return result
 
+    def getAllBusFastArrival(self, limitFastNode=2) -> dict:
+        routeNoList = self.getBusRouteNoList()
+        result = dict()
+        for routeNo in routeNoList:
+            result[routeNo] = self.getSpecificBusFastArrival(routeNo=routeNo, limitFastNode=limitFastNode)
+        return result
+
     def getCityCode(self) -> str:
         return self.BusData.getValue('cityCode')
 
@@ -152,7 +180,6 @@ class BusManager:
 
     def getNodeLatiLong(self) -> [float, float]:
         return [self.BusData.getValue('lati'), self.BusData.getValue('long')]
-
 
     def getBusDict(self) -> dict or None:
         return self.BusData.getValue('busDict')

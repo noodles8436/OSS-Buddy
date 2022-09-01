@@ -83,8 +83,6 @@ KICK_USER = "07" + TASK_SPLIT + "00"
 # (클라가 서버를 로그아웃) 08;00
 DISCONNECT_SERVER = "08" + TASK_SPLIT + "00"
 
-
-
 # (RaspBerry 연결) 30;nodeid;lati;long
 RASP_INFO_LOGIN = "30"
 
@@ -96,7 +94,7 @@ RASP_INFO_LOGIN_FAIL = RASP_INFO_LOGIN + TASK_SPLIT + "01"
 RASP_REQ_BUS_LIST = "31"
 
 # (RaspBerry 버스 리스트 전부 요청)
-# RASP_REQ_BUS_LIST_RESULT = 31;버스 개수;1번 버스:1번 버스 남은 노드:1번 버스 남은 시간;2번 버스...
+# RASP_REQ_BUS_LIST_RESULT = 31;버스 개수;1번 버스:1번 버스 남은 노드;2번 버스...
 
 # (Raspberry 버스 가능 확인)
 RASP_CHECK_BUS = "32"

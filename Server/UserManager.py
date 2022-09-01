@@ -6,7 +6,7 @@ class UserManager:
 
     def __init__(self):
         self.DB = Database.Database()
-        self.busReserveDict = {}  #busReserveDict[user_mac] = [node_id, route_id]
+        self.busReserveDict = {}  #busReserveDict[user_mac] = [node_id, route_No]
         self.userBusStopDict = {}  #userBusStopDict[user_mac] = node_id
 
     def userRegister(self, name: str, phone_num: str, mac_add: str) -> str:

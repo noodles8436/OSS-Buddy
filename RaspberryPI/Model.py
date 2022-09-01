@@ -16,7 +16,7 @@ class Model:
                                     path_or_model='YoloV7/yolov7.pt', autoshape=True)
         self.reader = easyocr.Reader(['en'], gpu=False)
 
-    def detect(self, cvImg, confidence=0.8) -> list[list[str, float]]:
+    def detect(self, cvImg, confidence=0.8) -> list[list[str, float]] or None:
         detections = self.model(cvImg)
         results = detections.pandas().xyxy[0].to_dict(orient="records")
         _pred: list = list()
@@ -41,6 +41,8 @@ class Model:
 
             _pred.append(_data)
 
+        if len(_pred) == 0:
+            return None
         return _pred
 
 

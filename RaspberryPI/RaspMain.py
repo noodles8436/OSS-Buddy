@@ -43,7 +43,9 @@ class RaspMain:
                 print("[Rasp Detector] Server Login Success")
 
                 while True:
-                    routeNo = self.Detector.detect()
+                    _pred = self.Detector.detect()
+                    routeNo = self.bus_number_filter(_pred=_pred)
+
                     msg = ""
                     if routeNo is None:
                         msg = p.RASP_DETECTOR_BUS_NONE.encode()
@@ -60,6 +62,9 @@ class RaspMain:
                     await writer.drain()
                     writer.close()
                     await writer.wait_closed()
+
+    def bus_number_filter(self, _pred: list[list[str, float]]) -> str or None:
+        return ""
 
     async def infoProvider(self) -> None:
         reader: asyncio.StreamReader

@@ -44,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
 
                     txtResult.setText(
-                            "위도 : " + longitude + "\n" +
-                                    "경도 : " + latitude + "\n"
+                            "경도 : " + longitude + "\n" +
+                                    "위도 : " + latitude + "\n"
                     );
 
                     lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
@@ -64,16 +64,17 @@ public class MainActivity extends AppCompatActivity {
 
     final LocationListener gpsLocationListener = new LocationListener() {
         public void onLocationChanged(Location location) {
-
-            String provider = location.getProvider();
+            
             double longitude = location.getLongitude();
             double latitude = location.getLatitude();
-            double altitude = location.getAltitude();
 
             txtResult.setText(
-                    "위도 : " + longitude + "\n" +
-                            "경도 : " + latitude + "\n");
+                    "경도 : " + longitude + "\n" +
+                            "위도 : " + latitude + "\n");
 
         }
     };
 }
+
+
+

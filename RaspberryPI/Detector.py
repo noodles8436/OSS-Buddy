@@ -1,14 +1,25 @@
+import cv2
+import Model
 
 class Detector:
 
     def __init__(self):
-        pass
+        self.model = Model.Model()
+        self.Camera = cv2.VideoCapture(0)
 
-    def initModel(self):
-        pass
+    def detect(self) -> list[list[str, float]] or None:
+        ret, frame = self.Camera.read()
 
-    def initCamera(self):
-        pass
+        if not ret:
+            print('[DETCTOR] Failed to grab frame in Camera')
+            raise Exception #추후에 바꿔야함
 
-    def main(self):
-        pass
+        return self.model.detect(frame)
+
+    def __del__(self):
+        self.Camera.release()
+
+
+if __name__ == "__main__":
+    detector = Detector()
+    detector.detect()

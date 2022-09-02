@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {//성공했을때
-                                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                    Intent intent = new Intent(MainActivity.this, Loading_page.class);
                                     startActivity(intent);
                                 } else {//실패했을때
                                     Toast.makeText(MainActivity.this, "로그인 오류", Toast.LENGTH_SHORT).show();
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                             FirebaseUser user = mAuth.getCurrentUser();
                             //updateUI(user);
                             Toast.makeText(getApplicationContext(), "Complete", Toast.LENGTH_LONG).show();
-                            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                            Intent intent = new Intent(MainActivity.this, Loading_page.class);
                             startActivity(intent);
 
                         } else {

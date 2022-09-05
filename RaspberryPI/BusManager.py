@@ -4,6 +4,10 @@ import BusTracker
 
 class BusManager:
 
+    def __init__(self):
+        self.BusTracker = None
+        self.BusData = None
+
     def setUp(self) -> bool:
         self.BusData = FileManager.configManager("./buddy_bus.json")
         self.BusTracker = BusTracker.BusTracker()
@@ -41,7 +45,7 @@ class BusManager:
 
         return True
 
-    def addBusRoute(self, cityCode: str, routeId: str, routeNo: str, vehicleNo: str) -> bool:
+    def addBusRoute(self, cityCode: str, routeId: str, routeNo: str) -> bool:
 
         busdata = self.getBusDict()
         if busdata is None:
@@ -56,7 +60,7 @@ class BusManager:
 
         return True
 
-    def setBusDict(self, busDict: dict) -> bool:
+    def setBusDict(self, busDict: dict) -> None:
         self.BusData.setValue('busList', busDict)
 
     def getBusRouteNoList(self) -> list:
@@ -71,8 +75,8 @@ class BusManager:
             return dict()
         return busdict
 
-    def getBusFromNo(self, routeNo: str) -> dict() or None:
-        if routeNo in self.getBusRouteIdFromNo():
+    def getBusFromNo(self, routeNo: str) -> dict or None:
+        if routeNo in self.getBusRouteNoList():
             return self.getBusData()[routeNo]
         return None
 

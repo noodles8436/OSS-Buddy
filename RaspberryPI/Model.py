@@ -16,7 +16,7 @@ class Model:
                                     path_or_model='YoloV7/yolov7.pt', autoshape=True)
         self.reader = easyocr.Reader(['en'], gpu=False)
 
-    def detect(self, cvImg, confidence=0.8) -> list[list[str, float]] or None:
+    def detect(self, cvImg, confidence=0.8) -> list[list[str, float], int] or None:
         detections = self.model(cvImg)
         results = detections.pandas().xyxy[0].to_dict(orient="records")
         _pred: list = list()
@@ -37,7 +37,7 @@ class Model:
             result = self.reader.readtext(cropImg)
             _data: list = list()
             for (bbox, text, prob) in result:
-                _data.append([text, prob])
+                _data.append([text, prob, (x1+x2) // 2])
 
             _pred.append(_data)
 
@@ -48,4 +48,5 @@ class Model:
 
 if __name__ == "__main__":
     m = Model()
-    m.detect(cv2.imread("./DetectionTest/bus_img_test_2.jpg"))
+    output = m.detect(cv2.imread("./DetectionTest/bus_img_test_3.jpg"))
+    print(output)

@@ -5,14 +5,19 @@ import PROTOCOL as p
 
 class Server:
 
-    def __init__(self):
-        self.ip = "localhost"
-        self.port = 7777
-        self.packetSize = 1024
+    def __init__(self, ip, port):
+        self.server = None
+        self.ip = ip
+        self.port = port
         self.userMgr = UserManager.UserManager()
 
+    async def run_server(self) -> None:
+        self.server = await asyncio.start_server(self.loginHandler, host=self.ip, port=self.port)
+        async with self.server:
+            await self.server.serve_forever()
+
     async def loginHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        data: bytes = await reader.read(self.packetSize)
+        data: bytes = await reader.read(p.SERVER_PACKET_SIZE)
         msg = data.decode().split(p.TASK_SPLIT)
 
         if msg[0] == p.USER_REGISTER:  # User Register
@@ -107,7 +112,7 @@ class Server:
                                     break
 
                             except asyncio.TimeoutError:
-                                if self.isBusAlarmTime() is True:
+                                if self.isBusAlarmTime(userMac=userMac) is True:
                                     self.AlarmUser(userMac=userMac)
                                     break
 
@@ -115,6 +120,19 @@ class Server:
             msg_result = p.USER_LOCATION_FIND_FAIL
             writer.write(msg_result.encode())
             await writer.drain()
+
+    async def userGPSHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, userMac: str):
+        pass
+
+    async def RaspInfoHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, nodeId: str,
+                              lati: float, long: float):
+        pass
+
+    async def RaspDetectorHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, nodeId: str):
+        pass
+
+    async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str):
+        pass
 
     async def connectionCheck(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> bool:
         msg = p.CONNECTION_CHECK
@@ -128,11 +146,6 @@ class Server:
 
         return True
 
-    async def run_server(self) -> None:
-        server = await asyncio.start_server(self.loginHandler, host=self.ip, port=self.port)
-        async with server:
-            await server.serve_forever()
-
     def busCheck(self, userMac: str, routeNo: str) -> str:
         pass
 
@@ -145,7 +158,7 @@ class Server:
     def isBusReserved(self) -> bool:
         pass
 
-    def isBusAlarmTime(self, userMac: str):
+    def isBusAlarmTime(self, userMac: str) -> bool:
         pass
 
     def AlarmUser(self, userMac: str):
@@ -153,5 +166,5 @@ class Server:
 
 
 if __name__ == "__main__":
-    server = Server()
+    server = Server(ip='localhost', port=7777)
     asyncio.run(server.run_server())

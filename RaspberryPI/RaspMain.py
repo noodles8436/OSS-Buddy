@@ -63,8 +63,17 @@ class RaspMain:
                     writer.close()
                     await writer.wait_closed()
 
-    def bus_number_filter(self, _pred: list[list[str, float]]) -> str or None:
-        return ""
+    def bus_number_filter(self, _pred: list[list[str, float, int]]) -> str or None:
+        busList = self.busManager.getBusRouteNoList()
+        mostLeft = -1
+        routeNo = None
+        for (_text, _prob, _xpos) in _pred:
+            if _text in busList:
+                if mostLeft == -1 or mostLeft > _xpos:
+                    mostLeft=_xpos
+                    routeNo = _text
+
+        return routeNo
 
     async def infoProvider(self) -> None:
         reader: asyncio.StreamReader

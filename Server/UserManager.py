@@ -8,8 +8,13 @@ class UserManager:
         self.DB = Database.Database()
         self.busReserveDict = {}  # busReserveDict[user_mac] = [node_id, route_No]
         self.userBusStopDict = {}  # userBusStopDict[user_mac] = node_id
+
         self.busComingInfo = {}  # busComingInfo[node_id] = route_No
-        self.busStopData = {} # busStopData[node_id] = [route_No, route_No, ...]
+        self.busStopData = {} # busStopData[node_id] = [lati, long, nodeNm]
+        self.busArrivalData = {} # busArrivalData[node_id] = dict[routeNo] => [Arrival, VehicleNo]
+
+        self.busDriverTarget = {} # busDriverTarget[vehicleNo] = [nodeid]
+        self.busDriverBusTack = {} # busDriverBusStack[vehicleNo] = dict[ord] => [nodeId]
 
     # User Manage Section
 
@@ -70,8 +75,8 @@ class UserManager:
             return True
         return False
 
-    def setBusStopData(self, nodeId: str, busRouteList: str):
-        self.busStopData[nodeId] = busRouteList
+    def setBusStopData(self, nodeId: str, lati: float, long: float, nodeNm: str):
+        self.busStopData[nodeId] = [lati, long, nodeNm]
 
     def removeBusStopData(self, nodeId: str):
         if self.isBusStopDataExist(nodeId=nodeId):
@@ -81,6 +86,21 @@ class UserManager:
         if self.isBusStopDataExist(nodeId=nodeId):
             return self.busStopData[nodeId]
         return list()
+
+    def setBusArrivalData(self, nodeId: str, arrivalDict: dict):
+        self.busArrivalData[nodeId] = arrivalDict
+
+    def removeBusArrivalData(self, nodeId: str):
+        if nodeId in self.busArrivalData.keys():
+            self.busArrivalData.__delitem__(nodeId)
+
+    def getBusArrivalData(self, nodeId: str, routeNo: str) -> list[str, str] or None:
+        if nodeId in self.busArrivalData.keys():
+            arrdata: dict = self.busArrivalData[nodeId]
+            if routeNo in arrdata.keys():
+                return arrdata[routeNo]
+        return None
+
 
     # RaspBerry PI Detection Section
 
@@ -94,3 +114,16 @@ class UserManager:
         if node_id in self.busComingInfo.keys():
             return self.busComingInfo[node_id]
         return None
+
+    # Bus Driver Section
+
+    def setBusDriver(self, nodeid: str, routeNo: str):
+        busData = self.getBusArrivalData(nodeId=nodeid, routeNo=routeNo)
+        vehicleNo = busData[1]
+
+
+        self.busDriverTarget[vehicleNo] = nodeid
+
+    def removeBusDriver(self, vehicleNo: str, nodeId):
+        pass
+

@@ -9,6 +9,9 @@ class UserManager:
         self.busReserveDict = {}  # busReserveDict[user_mac] = [node_id, route_No]
         self.userBusStopDict = {}  # userBusStopDict[user_mac] = node_id
         self.busComingInfo = {}  # busComingInfo[node_id] = route_No
+        self.busStopData = {} # busStopData[node_id] = [route_No, route_No, ...]
+
+    # User Manage Section
 
     def userRegister(self, name: str, phone_num: str, mac_add: str) -> str:
         result = self.DB.addUser(name=name, phone_num=phone_num, mac_add=mac_add)
@@ -41,15 +44,45 @@ class UserManager:
     def removeUserLocation(self, user_mac: str) -> None:
         self.userBusStopDict.__delitem__(user_mac)
 
-    def setUserBus(self, user_mac: str, node_id: str, route_id: str) -> None:
+    def setUserReserveBus(self, user_mac: str, node_id: str, routeNo: str) -> None:
         if user_mac not in self.busReserveDict.keys():
-            self.busReserveDict[user_mac] = [node_id, route_id]
+            self.busReserveDict[user_mac] = [node_id, routeNo]
+
+    def removeUserReserveBus(self, user_mac: str):
+        if user_mac in self.busReserveDict.keys():
+            self.busReserveDict.__delitem__(user_mac)
+
+    def getUserReserveBus(self, user_mac: str) -> list[str, str] or None:
+        if user_mac in self.busReserveDict.keys():
+            return self.busReserveDict[user_mac]
+        return None
 
     def getUserLocation(self, mac_add: str) -> str or None:
         if len(self.userBusStopDict) > 0:
             if mac_add in self.userBusStopDict.keys():
                 return self.userBusStopDict[mac_add]
         return None
+
+    # RaspBerry PI InfoProvider Section
+
+    def isBusStopDataExist(self, nodeId: str):
+        if nodeId in self.busStopData.keys():
+            return True
+        return False
+
+    def setBusStopData(self, nodeId: str, busRouteList: str):
+        self.busStopData[nodeId] = busRouteList
+
+    def removeBusStopData(self, nodeId: str):
+        if self.isBusStopDataExist(nodeId=nodeId):
+            self.busStopData.__delitem__(nodeId)
+
+    def getBusStopData(self, nodeId: str) -> list:
+        if self.isBusStopDataExist(nodeId=nodeId):
+            return self.busStopData[nodeId]
+        return list()
+
+    # RaspBerry PI Detection Section
 
     def setBusComing(self, node_id: str, routeNo: str) -> None:
         self.busComingInfo[node_id] = routeNo

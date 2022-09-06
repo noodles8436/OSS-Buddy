@@ -53,7 +53,7 @@ class Server:
             else:
                 msg_result = p.RASP_INFO_LOGIN_FAIL
 
-            writer.write(msg_result)
+            writer.write(msg_result.encode())
             await writer.drain()
 
             if msg_result == p.RASP_INFO_LOGIN_SUCCESS:
@@ -66,7 +66,7 @@ class Server:
             else:
                 msg_result = p.RASP_DETECTOR_LOGIN_FAIL
 
-            writer.write(msg_result)
+            writer.write(msg_result.encode())
             await writer.drain()
 
             if msg_result == p.RASP_DETECTOR_LOGIN_SUCCESS:
@@ -148,7 +148,11 @@ class Server:
         pass
 
     async def RaspDetectorHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, nodeId: str):
-        pass
+        while True:
+            data = await reader.read(p.SERVER_PACKET_SIZE)
+            msg = data.decode().split(p.TASK_SPLIT)
+            
+            
 
     async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str):
         pass

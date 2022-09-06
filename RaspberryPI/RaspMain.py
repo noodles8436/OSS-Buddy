@@ -46,7 +46,6 @@ class RaspMain:
                     _pred = self.Detector.detect()
                     routeNo = self.bus_number_filter(_pred=_pred)
 
-                    msg = ""
                     if routeNo is None:
                         msg = p.RASP_DETECTOR_BUS_NONE.encode()
                     else:
@@ -110,11 +109,12 @@ class RaspMain:
                     recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
                     msg: List[str] = recv.decode().split(p.TASK_SPLIT)
 
-                    if msg[0] == p.RASP_REQ_BUS_LIST:
+                    if msg[0] == p.RASP_REQ_ALL_BUS_ARR:
                         _busDict = self.busManager.getAllBusFastArrival()
-                        _sendMsg: str = p.RASP_REQ_BUS_LIST + p.TASK_SPLIT + str(len(_busDict.keys()))
+                        _sendMsg: str = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + str(len(_busDict.keys()))
                         for _routeNo in _busDict.keys():
-                            _sendMsg += p.TASK_SPLIT + _routeNo + ":" + _busDict[_routeNo][0]
+                            _sendMsg += p.TASK_SPLIT + _routeNo + ":" + _busDict[_routeNo][0] \
+                                        + ":" + _busDict[_routeNo][1]
 
                         writer.write(_sendMsg.encode())
                         await writer.drain()
@@ -145,6 +145,11 @@ class RaspMain:
                         else:
                             _sendMsg = p.RASP_CHECK_ARRIVAL + p.TASK_SPLIT + "-1" + p.TASK_SPLIT + "-1"
 
+                        writer.write(_sendMsg.encode())
+                        await writer.drain()
+
+                    elif msg[0] == p.RASP_GET_NODE_NM:
+                        _sendMsg: str = p.RASP_GET_NODE_NM + p.TASK_SPLIT + self.busManager.getNodeNm()
                         writer.write(_sendMsg.encode())
                         await writer.drain()
 

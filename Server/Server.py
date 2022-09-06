@@ -148,11 +148,26 @@ class Server:
         pass
 
     async def RaspDetectorHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, nodeId: str):
-        while True:
-            data = await reader.read(p.SERVER_PACKET_SIZE)
-            msg = data.decode().split(p.TASK_SPLIT)
-            
-            
+        try:
+            while True:
+                data = await reader.read(p.SERVER_PACKET_SIZE)
+                msg = data.decode().split(p.TASK_SPLIT)
+
+                if msg[0] == p.RASP_DETECTOR_BUS_CATCH:
+                    if len(msg) == 2:
+                        routeNo = msg[1]
+                        self.userMgr.setBusComing(node_id=nodeId, routeNo=routeNo)
+
+                elif msg[0] == p.RASP_DETECTOR_BUS_NONE:
+                    self.userMgr.removeBusComing(node_id=nodeId)
+        
+        except Exception as e:
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
+
+
+
 
     async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str):
         pass

@@ -48,10 +48,29 @@ class Server:
             pass
 
         elif msg[0] == "30":  # Raspberry PI InfoProvider Connection
-            pass
+            if len(msg) == 4:
+                msg_result = p.RASP_INFO_LOGIN_SUCCESS
+            else:
+                msg_result = p.RASP_INFO_LOGIN_FAIL
+
+            writer.write(msg_result)
+            await writer.drain()
+
+            if msg_result == p.RASP_INFO_LOGIN_SUCCESS:
+                await self.RaspInfoHandler(reader=reader, writer=writer, nodeId=msg[1],
+                                           lati=float(msg[2]), long=float(msg[3]))
 
         elif msg[0] == "40":  # Raspberry PI Detector Connection
-            pass
+            if len(msg) == 2:
+                msg_result = p.RASP_DETECTOR_LOGIN_SUCCESS
+            else:
+                msg_result = p.RASP_DETECTOR_LOGIN_FAIL
+
+            writer.write(msg_result)
+            await writer.drain()
+
+            if msg_result == p.RASP_DETECTOR_LOGIN_SUCCESS:
+                await self.RaspDetectorHandler(reader=reader, writer=writer, nodeId=msg[1])
 
         writer.close()
 

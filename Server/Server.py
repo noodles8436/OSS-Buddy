@@ -160,14 +160,11 @@ class Server:
 
                 elif msg[0] == p.RASP_DETECTOR_BUS_NONE:
                     self.userMgr.removeBusComing(node_id=nodeId)
-        
+
         except Exception as e:
             await writer.drain()
             writer.close()
             await writer.wait_closed()
-
-
-
 
     async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str):
         pass
@@ -185,19 +182,43 @@ class Server:
         return True
 
     def busCheck(self, userMac: str, routeNo: str) -> str:
-        pass
+        nodeId = self.userMgr.getUserLocation(mac_add=userMac)
+        if nodeId is None:
+            return p.USER_BUS_CAN_RESERVATION_NO
+
+        routeList = self.userMgr.getBusStopData(nodeId=nodeId)
+        if len(routeList) == 0:
+            return p.USER_BUS_CAN_RESERVATION_NO
+
+        if routeNo in routeList:
+            return p.USER_BUS_CAN_RESERVATION_OK
+
+        return p.USER_BUS_CAN_RESERVATION_NO
 
     def busReservation(self, userMac: str, routeNo: str) -> str:
-        pass
+        nodeId = self.userMgr.getUserLocation(mac_add=userMac)
+        if nodeId is None:
+            return p.USER_BUS_RESERVATION_CONFIRM_FAIL
+
+        self.userMgr.setUserReserveBus(user_mac=userMac, node_id=nodeId, routeNo=routeNo)
+        return p.USER_BUS_RESERVATION_CONFIRM_SUCCESS
 
     def busCancel(self, userMac: str) -> str:
-        pass
-
-    def isBusReserved(self) -> bool:
-        pass
+        self.userMgr.removeUserReserveBus(user_mac=userMac)
+        return p.USER_BUS_CANCEL_SUCCESS
 
     def isBusAlarmTime(self, userMac: str) -> bool:
-        pass
+        result = self.userMgr.getUserReserveBus(user_mac=userMac)
+        if result is None:
+            return False
+
+        node_id = result[0], route_id = result[1]
+        comingBus = self.userMgr.getBusComing(node_id=node_id)
+
+        if comingBus == route_id:
+            return True
+        else:
+            return False
 
     def AlarmUser(self, userMac: str):
         pass

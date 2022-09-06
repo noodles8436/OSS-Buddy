@@ -76,6 +76,7 @@ USER_BUS_CANCEL_SUCCESS = USER_BUS_CANCEL + TASK_SPLIT + "00"
 USER_BUS_CANCEL_FAIL = USER_BUS_CANCEL + TASK_SPLIT + "01"
 
 # (사용자 버스 도착 진동) 06;00
+USER_BUS_ARRIVED_VIBE = "06"
 
 # (서버가 사용자 로그아웃) 07;00
 KICK_USER = "07" + TASK_SPLIT + "00"
@@ -91,10 +92,10 @@ RASP_INFO_LOGIN_SUCCESS = RASP_INFO_LOGIN + TASK_SPLIT + "00"
 RASP_INFO_LOGIN_FAIL = RASP_INFO_LOGIN + TASK_SPLIT + "01"
 
 # (RaspBerry 버스 리스트 요청)
-RASP_REQ_BUS_LIST = "31"
+RASP_REQ_ALL_BUS_ARR = "31"
 
 # (RaspBerry 버스 리스트 전부 요청)
-# RASP_REQ_BUS_LIST_RESULT = 31;버스 개수;1번 버스:1번 버스 남은 노드;2번 버스...
+# RASP_REQ_BUS_LIST_RESULT = 31;버스 개수;1번 버스:1번 버스 남은 노드;버스번호;2번 버스...
 
 # (Raspberry 버스 가능 확인)
 RASP_CHECK_BUS = "32"
@@ -108,6 +109,12 @@ RASP_CHECK_ARRIVAL = "33" # ;route_No
 
 # (Res. Raspberry 특정 최근접 버스 확인)
 #RASP_CHECK_ARRIVAL = 33;남은 노드;버스 번호판
+
+# (Raspberry 버스 정류장 이름 확인)
+RASP_GET_NODE_NM = "34"
+
+# (Res. Raspberry 버스 정류장 이름 확인)
+# RASP_GET_NODE_NM = "34;nodeName"
 
 # (RaspBerry 연결) 40;nodeid;
 RASP_DETECTOR_LOGIN = "40"

@@ -132,7 +132,9 @@ class Server:
 
                             except asyncio.TimeoutError:
                                 if self.isBusAlarmTime(userMac=userMac) is True:
-                                    self.AlarmUser(userMac=userMac)
+                                    # Alarm User
+                                    writer.write(p.USER_BUS_ARRIVED_VIBE.encode())
+                                    await writer.drain()
                                     break
 
             # 클라이언트 위치 확인 안됨
@@ -145,7 +147,37 @@ class Server:
 
     async def RaspInfoHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, nodeId: str,
                               lati: float, long: float):
-        pass
+
+        writer.write(p.RASP_GET_NODE_NM.encode())
+        await writer.drain()
+
+        data = await reader.read(p.SERVER_PACKET_SIZE)
+        msg = data.decode().split(p.TASK_SPLIT)
+        self.userMgr.setBusStopData(nodeId=nodeId, lati=lati, long=long, nodeNm=msg[1])
+
+        try:
+            while True:
+                writer.write(p.RASP_REQ_ALL_BUS_ARR.encode())
+                await writer.drain()
+
+                data = await reader.read(p.SERVER_PACKET_SIZE)
+                msg = data.decode().split(p.TASK_SPLIT)
+
+                cnt: int = int(msg[1])
+
+                result = dict()
+
+                for i in range(2, cnt + 2):
+                    _busData = msg[i].split(p.TASK_SPLIT)
+                    result[_busData[0]] = [_busData[1], _busData[2]]
+
+                self.userMgr.setBusArrivalData(nodeId=nodeId, arrivalDict=result)
+                await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
+
+        except Exception:
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
 
     async def RaspDetectorHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, nodeId: str):
         try:
@@ -186,11 +218,8 @@ class Server:
         if nodeId is None:
             return p.USER_BUS_CAN_RESERVATION_NO
 
-        routeList = self.userMgr.getBusStopData(nodeId=nodeId)
-        if len(routeList) == 0:
-            return p.USER_BUS_CAN_RESERVATION_NO
-
-        if routeNo in routeList:
+        busData = self.userMgr.getBusArrivalData(nodeId=nodeId, routeNo=routeNo)
+        if busData is not None:
             return p.USER_BUS_CAN_RESERVATION_OK
 
         return p.USER_BUS_CAN_RESERVATION_NO
@@ -219,9 +248,6 @@ class Server:
             return True
         else:
             return False
-
-    def AlarmUser(self, userMac: str):
-        pass
 
 
 if __name__ == "__main__":

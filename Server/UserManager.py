@@ -6,8 +6,9 @@ class UserManager:
 
     def __init__(self):
         self.DB = Database.Database()
-        self.busReserveDict = {}  #busReserveDict[user_mac] = [node_id, route_No]
-        self.userBusStopDict = {}  #userBusStopDict[user_mac] = node_id
+        self.busReserveDict = {}  # busReserveDict[user_mac] = [node_id, route_No]
+        self.userBusStopDict = {}  # userBusStopDict[user_mac] = node_id
+        self.busComingInfo = {}  # busComingInfo[node_id] = route_No
 
     def userRegister(self, name: str, phone_num: str, mac_add: str) -> str:
         result = self.DB.addUser(name=name, phone_num=phone_num, mac_add=mac_add)
@@ -21,6 +22,7 @@ class UserManager:
 
     def userLogin(self, name: str, phone_num: str, mac_add: str) -> str:
         result = self.DB.isUserExist(name=name, phone_num=phone_num, mac_add=mac_add)
+        msg = ""
 
         if result == 1:
             msg = p.USER_LOGIN_SUCCESS
@@ -47,4 +49,15 @@ class UserManager:
         if len(self.userBusStopDict) > 0:
             if mac_add in self.userBusStopDict.keys():
                 return self.userBusStopDict[mac_add]
+        return None
+
+    def setBusComing(self, node_id: str, routeNo: str) -> None:
+        self.busComingInfo[node_id] = routeNo
+
+    def removeBusComing(self, node_id: str) -> None:
+        self.busComingInfo.__delitem__(node_id)
+
+    def getBusComing(self, node_id: str) -> str or None:
+        if node_id in self.busComingInfo.keys():
+            return self.busComingInfo[node_id]
         return None

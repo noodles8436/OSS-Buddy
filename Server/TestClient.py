@@ -52,6 +52,14 @@ async def run_client(host: str, port: int):
     writer.close()
     await writer.wait_closed()
 
+async def run_busDriver(host: str, port: int):
+    pass
+
+async def run_raspInfo(host: str, port: int):
+    pass
+
+async def run_raspDetector(host: str, port: int):
+    pass
 
 if __name__ == "__main__":
     asyncio.run(run_client("localhost", 7777))

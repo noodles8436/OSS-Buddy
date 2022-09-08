@@ -59,10 +59,22 @@ class Server:
                 await self.userGPSHandler(reader=reader, writer=writer, userMac=msg[3])
 
         elif msg[0] == p.BUSDRIVER_REGISTER:  # Bus Driver Register
-            pass
+            if len(msg) == 4:
+                msg_result = self.userMgr.busDriverRegister(vehicleNo=msg[1], name=msg[2], mac_add=msg[3])
+            else:
+                msg_result = p.BUSDRIVER_REGISTER_FAIL
+            writer.write(msg_result.encode())
+            await writer.drain()
 
         elif msg[0] == p.BUSDRIVER_LOGIN:  # Bus Driver Login
-            pass
+            if len(msg) == 4:
+                msg_result = self.userMgr.busDriverLogin(vehicleNo=msg[1], name=msg[2], mac_add=msg[3])
+            else:
+                msg_result = p.BUSDRIVER_LOGIN_FAIL
+            writer.write(msg_result.encode())
+
+            if msg_result == p.BUSDRIVER_LOGIN_SUCCESS:
+                await self.BusDriverHandler(reader=reader, writer=writer, vehlcleNo=msg[1], routeNo=msg[4])
 
         elif msg[0] == p.RASP_INFO_LOGIN:  # Raspberry PI InfoProvider Connection
             if len(msg) == 4:
@@ -232,8 +244,30 @@ class Server:
             writer.close()
             await writer.wait_closed()
 
-    async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str):
-        pass
+    async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str,
+                               routeNo: str):
+
+        try:
+            while True:
+                reserve: list[int, str] or None = \
+                    self.userMgr.getBusDriverStopPoint(vehicleNo=vehlcleNo, routeNo=routeNo)
+
+                if reserve is not None:
+                    _node_left: int = reserve[0]
+                    _node_name: str = reserve[1]
+
+                    msg_result = p.BUSDRIVER_NODE_ANNOUNCE + p.TASK_SPLIT + _node_name \
+                                 + p.TASK_SPLIT + str(_node_left)
+
+                    writer.write(msg_result.encode())
+                    await writer.drain()
+
+                await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
+
+        except Exception:
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
 
     async def connectionCheck(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> bool:
         msg = p.CONNECTION_CHECK

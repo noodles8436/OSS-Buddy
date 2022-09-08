@@ -10,11 +10,10 @@ class UserManager:
         self.userBusStopDict = {}  # userBusStopDict[user_mac] = node_id
 
         self.busComingInfo = {}  # busComingInfo[node_id] = route_No
-        self.busStopData = {} # busStopData[node_id] = [lati, long, nodeNm]
-        self.busArrivalData = {} # busArrivalData[node_id] = dict[routeNo] => [Arrival, VehicleNo]
+        self.busStopData = {}  # busStopData[node_id] = [lati, long, nodeNm]
+        self.busArrivalData = {}  # busArrivalData[node_id] = dict[routeNo] => [Arrival, VehicleNo]
 
-        self.busDriverTarget = {} # busDriverTarget[vehicleNo] = [nodeid]
-        self.busDriverBusTack = {} # busDriverBusStack[vehicleNo] = dict[ord] => [nodeId]
+        self.busDriverBusStack = {}  # busDriverBusStack[vehicleNo] = list[nodeId, nodeId...]
 
     # User Manage Section
 
@@ -68,6 +67,23 @@ class UserManager:
                 return self.userBusStopDict[mac_add]
         return None
 
+    def searchNearBusStation(self, user_lati: float, user_long: float, radius=0.0001) -> str or None:
+        for nodeid in self.busStopData.keys():
+            stopData:list = self.busStopData[nodeid]
+            lati = stopData[0]
+            long = stopData[1]
+            dis_lati = abs(user_lati - lati)
+            dis_long = abs(user_long - long)
+            dis = (dis_lati + dis_long)**(1/2)
+
+            if dis <= radius:
+                return nodeid
+
+        return None
+
+    # 37.277109 127.903578
+    # 37.277111 127.903692
+
     # RaspBerry PI InfoProvider Section
 
     def isBusStopDataExist(self, nodeId: str):
@@ -101,7 +117,6 @@ class UserManager:
                 return arrdata[routeNo]
         return None
 
-
     # RaspBerry PI Detection Section
 
     def setBusComing(self, node_id: str, routeNo: str) -> None:
@@ -121,9 +136,29 @@ class UserManager:
         busData = self.getBusArrivalData(nodeId=nodeid, routeNo=routeNo)
         vehicleNo = busData[1]
 
+        index = 0
+        nodeList: list = self.busDriverBusStack[vehicleNo]
 
-        self.busDriverTarget[vehicleNo] = nodeid
+        for i in range(len(nodeList)):
+            _reserved_node_id = nodeList[i]
+            if _reserved_node_id == nodeid:
+                return
 
-    def removeBusDriver(self, vehicleNo: str, nodeId):
-        pass
+            _other_node_bus_data = self.getBusArrivalData(nodeId=_reserved_node_id, routeNo=routeNo)
+            if busData[0] < _other_node_bus_data[0]:
+                break
+            index = i + 1
 
+        nodeList.insert(__index=index, __object=nodeid)
+        self.busDriverBusStack[vehicleNo] = nodeList
+
+    def removeBusDriver(self, vehicleNo: str, nodeId: str):
+        nodeList: list[str] = self.busDriverBusStack[vehicleNo]
+        if nodeId in nodeList:
+            nodeList.remove(__value=nodeId)
+
+    def getBusDriverStopPoint(self, vehicleNo: str) -> str or None:
+        nodeList: list[str] = self.busDriverBusStack[vehicleNo]
+        if len(nodeList) == 0:
+            return None
+        return nodeList[0]

@@ -26,6 +26,7 @@ URL_getSttnThrghRouteList = \
 
 baseParams = "?ServiceKey=" + APIEncodingKey + "&_type=xml"
 
+
 class BusTracker:
 
     def __init__(self):
@@ -106,11 +107,11 @@ class BusTracker:
         items = root.select("item")
         for item in items:
             nodeItem = dict()
-            #if item.find('nodeno') == None: print(item.find('nodenm'))
+            # if item.find('nodeno') == None: print(item.find('nodenm'))
             nodeItem['gpslati'] = float(item.find('gpslati').get_text())
             nodeItem['gpslong'] = float(item.find('gpslong').get_text())
             nodeItem['nodeid'] = item.find('nodeid').get_text()
-            #nodeItem['nodeno'] = int(item.find('nodeno').get_text())
+            # nodeItem['nodeno'] = int(item.find('nodeno').get_text())
             nodeItem['nodeord'] = int(item.find('nodeord').get_text())
             nodeItem['nodenm'] = item.find('nodenm').get_text()
             result['nodeDict'][str(nodeItem['nodeord'])] = nodeItem
@@ -215,10 +216,10 @@ class BusTracker:
 
 if __name__ == "__main__":
     BT = BusTracker()
-    #print(BT.getAllServiceAreas()) #지역 코드 얻기
-    #print(BT.getBusInformation('32020', '34')) #GGB234000021 #GGB234000026 (노선번호)
-    print(BT.getBusThrghSttnList('32020', 'WJB251000082')) #오리역 GGB206000215 GGB206000040 (정류장 번호)
-    #print(BT.getAllBusinRoute('31250', 'GGB234000021'))
+    # print(BT.getAllServiceAreas()) #지역 코드 얻기
+    # print(BT.getBusInformation('32020', '34')) #GGB234000021 #GGB234000026 (노선번호)
+    print(BT.getBusThrghSttnList('32020', 'WJB251000082'))  # 오리역 GGB206000215 GGB206000040 (정류장 번호)
+    # print(BT.getAllBusinRoute('31250', 'GGB234000021'))
 
     # cityCode는 어케 얻지?
     # cityCode, 정류장 (nodeId), routeid, routeNo 는 RaspBerry PI 에서 얻음.

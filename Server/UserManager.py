@@ -110,7 +110,7 @@ class UserManager:
         if nodeId in self.busArrivalData.keys():
             self.busArrivalData.__delitem__(nodeId)
 
-    def getBusArrivalData(self, nodeId: str, routeNo: str) -> list[str, str] or None:
+    def getBusArrivalData(self, nodeId: str, routeNo: str) -> list[int, str] or None:
         if nodeId in self.busArrivalData.keys():
             arrdata: dict = self.busArrivalData[nodeId]
             if routeNo in arrdata.keys():
@@ -131,6 +131,12 @@ class UserManager:
         return None
 
     # Bus Driver Section
+
+    def busDriverRegister(self, vehicleNo: str, name: str, mac_add: str):
+        pass
+
+    def busDriverLogin(self, vehicle: str, name: str, mac_add: str):
+        pass
 
     def setBusDriver(self, nodeid: str, routeNo: str):
         busData = self.getBusArrivalData(nodeId=nodeid, routeNo=routeNo)
@@ -157,8 +163,19 @@ class UserManager:
         if nodeId in nodeList:
             nodeList.remove(__value=nodeId)
 
-    def getBusDriverStopPoint(self, vehicleNo: str) -> str or None:
+    def getBusDriverStopPoint(self, vehicleNo: str, routeNo: str) -> list[int, str] or None:
         nodeList: list[str] = self.busDriverBusStack[vehicleNo]
         if len(nodeList) == 0:
             return None
-        return nodeList[0]
+
+        nodeid = nodeList[0]
+        _bus_data = self.getBusArrivalData(nodeId=nodeid, routeNo=routeNo)
+
+        # Sync Code with busArrival data & busStack Needed
+        # Sync Code with busArrival data & busStack Needed
+        # Sync Code with busArrival data & busStack Needed
+        # Sync Code with busArrival data & busStack Needed
+
+        arrival: int = _bus_data[0]
+        nodeNm = self.getBusStopData(nodeId=nodeid)[2]
+        return [arrival, nodeNm]

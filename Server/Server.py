@@ -160,7 +160,24 @@ class Server:
             await writer.drain()
 
     async def userGPSHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, userMac: str):
-        pass
+        try:
+            while True:
+                data = await reader.read(p.SERVER_PACKET_SIZE)
+                msg = data.decode().split(p.TASK_SPLIT)
+
+                lati = float(msg[1])
+                long = float(msg[2])
+
+                near_busStop = self.userMgr.searchNearBusStation(user_lati=lati, user_long=long)
+                if near_busStop is None:
+                    self.userMgr.removeUserLocation(user_mac=userMac)
+                else:
+                    self.userMgr.setUserLocation(user_mac=userMac, node_id=near_busStop)
+
+        except Exception:
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
 
     async def RaspInfoHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, nodeId: str,
                               lati: float, long: float):
@@ -186,7 +203,7 @@ class Server:
 
                 for i in range(2, cnt + 2):
                     _busData = msg[i].split(p.TASK_SPLIT)
-                    result[_busData[0]] = [_busData[1], _busData[2]]
+                    result[_busData[0]] = [int(_busData[1]), _busData[2]]
 
                 self.userMgr.setBusArrivalData(nodeId=nodeId, arrivalDict=result)
                 await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)

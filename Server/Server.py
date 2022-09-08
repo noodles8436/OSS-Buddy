@@ -245,22 +245,29 @@ class Server:
             await writer.wait_closed()
 
     async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str,
-                               routeNo: str):
-
+                               routeNo: str, node_left_alarm=3):
         try:
             while True:
-                reserve: list[int, str] or None = \
+
+                self.userMgr.refreshBusDriverPoints(vehicleNo=vehlcleNo, routeNo=routeNo)
+
+                reserve: list[int, str, str] or None = \
                     self.userMgr.getBusDriverStopPoint(vehicleNo=vehlcleNo, routeNo=routeNo)
 
                 if reserve is not None:
                     _node_left: int = reserve[0]
                     _node_name: str = reserve[1]
+                    _node_id: str = reserve[2]
 
-                    msg_result = p.BUSDRIVER_NODE_ANNOUNCE + p.TASK_SPLIT + _node_name \
-                                 + p.TASK_SPLIT + str(_node_left)
+                    if _node_left <= 3:
+                        msg_result = p.BUSDRIVER_NODE_ANNOUNCE + p.TASK_SPLIT + _node_name \
+                                     + p.TASK_SPLIT + str(_node_left)
 
-                    writer.write(msg_result.encode())
-                    await writer.drain()
+                        writer.write(msg_result.encode())
+                        await writer.drain()
+
+                        if _node_left <= 1:
+                            self.userMgr.removeBusDriver(vehicleNo=vehlcleNo, nodeId=_node_id)
 
                 await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
 

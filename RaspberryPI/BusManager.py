@@ -108,7 +108,7 @@ class BusManager:
 
         return len(_sttnList['nodeDict'].keys()) - 1
 
-    def getSpecificBusFastArrival(self, routeNo: str, limitFastNode=2) -> list or None:
+    def getSpecificBusFastArrival(self, routeNo: str, limitFastNode=1) -> list or None:
 
         if self.isBusThrgh(routeNo=routeNo) is False:
             return None
@@ -163,7 +163,7 @@ class BusManager:
 
         return result
 
-    def getAllBusFastArrival(self, limitFastNode=2) -> dict:
+    def getAllBusFastArrival(self, limitFastNode=1) -> dict:
         routeNoList = self.getBusRouteNoList()
         result = dict()
         for routeNo in routeNoList:

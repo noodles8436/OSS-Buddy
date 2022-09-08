@@ -7,14 +7,6 @@ TASK_SPLIT = ";"
 
 # 작업번호:내용
 
-# (버스기사 등록) 20;차량번호;이름;맥주소
-# (Res. 버스기사 등록) 성공 = 20;00 or 실패 = 20;01
-
-# (버스기사 로그인) 21;차량번호;이름;맥주소
-# (Res. 버스기사 로그인) 성공 = 21;00 or 실패 = 21;01
-
-# (버스기사 알림) 22;정거장이름;남은 정거장 수
-
 # (RaspBerry 주변 새로은 MAC 유저 확인 ) 33;mac;nodeid
 # (Res. RaspBerry 주변 새로은 MAC 유저 확인 ) 있는 유저 = 33;00 or 없는 유저 = 33;01
 
@@ -83,6 +75,35 @@ KICK_USER = "07" + TASK_SPLIT + "00"
 
 # (클라가 서버를 로그아웃) 08;00
 DISCONNECT_SERVER = "08" + TASK_SPLIT + "00"
+
+# (사용자 위치 전송 Protocol 시작) 09;name;phone_num;mac_add
+USER_GPS_LOGIN = "09"
+
+# (사용자 위치 전송 Protocol 시작) 성공 = 09;00 or 실패 = 09;01
+USER_GPS_LOGIN_SUCCESS = USER_GPS_LOGIN + TASK_SPLIT + "00"
+USER_GPS_LOGIN_FAIL = USER_GPS_LOGIN + TASK_SPLIT + "01"
+
+# (사용자 위치 전송) 10;lati;long
+USER_GPS_DATA = "10"
+
+
+# (버스기사 등록) 20;차량번호;이름;맥주소
+BUSDRIVER_REGISTER = "20"
+
+# (Res. 버스기사 등록) 성공 = 20;00 or 실패 = 20;01
+BUSDRIVER_REGISTER_SUCCESS = BUSDRIVER_REGISTER + TASK_SPLIT + "00"
+BUSDRIVER_REGISTER_FAIL = BUSDRIVER_REGISTER + TASK_SPLIT + "01"
+
+# (버스기사 로그인) 21;차량번호;이름;맥주소
+BUSDRIVER_LOGIN = "21"
+
+# (Res. 버스기사 로그인) 성공 = 21;00 or 실패 = 21;01
+BUSDRIVER_LOGIN_SUCCESS = BUSDRIVER_LOGIN + TASK_SPLIT + "00"
+BUSDRIVER_LOGIN_FAIL = BUSDRIVER_LOGIN + TASK_SPLIT + "01"
+
+# (버스기사 알림) 22;정거장이름;남은 정거장 수
+BUSDRIVER_NODE_ANNOUNCE = "22"
+
 
 # (RaspBerry 연결) 30;nodeid;lati;long
 RASP_INFO_LOGIN = "30"

@@ -175,19 +175,21 @@ class UserManager:
         if nodeId in nodeList:
             nodeList.remove(__value=nodeId)
 
-    def getBusDriverStopPoint(self, vehicleNo: str, routeNo: str) -> list[int, str] or None:
+    def getBusDriverStopPoint(self, vehicleNo: str, routeNo: str) -> list[int, str, str] or None:
         nodeList: list[str] = self.busDriverBusStack[vehicleNo]
         if len(nodeList) == 0:
             return None
 
+        for reserve_node in nodeList:
+            result: list[int, str] or None = self.getBusArrivalData(nodeId=reserve_node, routeNo=routeNo)
+            if result is None:
+                self.removeBusDriver(vehicleNo=vehicleNo, nodeId=reserve_node)
+            elif result[1] != vehicleNo:
+                self.removeBusDriver(vehicleNo=vehicleNo, nodeId=reserve_node)
+
         nodeid = nodeList[0]
         _bus_data = self.getBusArrivalData(nodeId=nodeid, routeNo=routeNo)
 
-        # Sync Code with busArrival data & busStack Needed
-        # Sync Code with busArrival data & busStack Needed
-        # Sync Code with busArrival data & busStack Needed
-        # Sync Code with busArrival data & busStack Needed
-
         arrival: int = _bus_data[0]
         nodeNm = self.getBusStopData(nodeId=nodeid)[2]
-        return [arrival, nodeNm]
+        return [arrival, nodeNm, nodeid]

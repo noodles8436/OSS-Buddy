@@ -51,6 +51,7 @@ class UserManager:
     def setUserReserveBus(self, user_mac: str, node_id: str, routeNo: str) -> None:
         if user_mac not in self.busReserveDict.keys():
             self.busReserveDict[user_mac] = [node_id, routeNo]
+            self.setBusDriver(nodeid=node_id, routeNo=routeNo)
 
     def removeUserReserveBus(self, user_mac: str):
         if user_mac in self.busReserveDict.keys():
@@ -67,9 +68,20 @@ class UserManager:
                 return self.userBusStopDict[mac_add]
         return None
 
+    def getBusReserveUserNum(self, nodeId: str, routeNo: str) -> int:
+
+        total = 0
+
+        for user_mac in self.busReserveDict.keys():
+            if self.busReserveDict[user_mac][0] == nodeId:
+                if self.busReserveDict[user_mac][1] == routeNo:
+                    total += 1
+
+        return total
+
     def searchNearBusStation(self, user_lati: float, user_long: float, radius=0.0001) -> str or None:
         for nodeid in self.busStopData.keys():
-            stopData:list = self.busStopData[nodeid]
+            stopData: list = self.busStopData[nodeid]
             lati = stopData[0]
             long = stopData[1]
             dis_lati = abs(user_lati - lati)
@@ -180,16 +192,17 @@ class UserManager:
         if len(nodeList) == 0:
             return None
 
-        for reserve_node in nodeList:
-            result: list[int, str] or None = self.getBusArrivalData(nodeId=reserve_node, routeNo=routeNo)
-            if result is None:
-                self.removeBusDriver(vehicleNo=vehicleNo, nodeId=reserve_node)
-            elif result[1] != vehicleNo:
-                self.removeBusDriver(vehicleNo=vehicleNo, nodeId=reserve_node)
-
         nodeid = nodeList[0]
         _bus_data = self.getBusArrivalData(nodeId=nodeid, routeNo=routeNo)
 
         arrival: int = _bus_data[0]
         nodeNm = self.getBusStopData(nodeId=nodeid)[2]
         return [arrival, nodeNm, nodeid]
+
+    def refreshBusDriverPoints(self, vehicleNo: str, routeNo: str) -> None:
+        if vehicleNo not in self.busDriverBusStack.keys():
+            return
+
+        for nodeId in self.busDriverBusStack[vehicleNo]:
+            if self.getBusReserveUserNum(nodeId=nodeId, routeNo=routeNo) <= 0:
+                self.busDriverBusStack[vehicleNo].remove(nodeId)

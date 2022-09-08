@@ -132,11 +132,23 @@ class UserManager:
 
     # Bus Driver Section
 
-    def busDriverRegister(self, vehicleNo: str, name: str, mac_add: str):
-        pass
+    def busDriverRegister(self, vehicleNo: str, name: str, mac_add: str) -> str:
+        result: bool = self.DB.addBusDriver(vehicleno=vehicleNo, name=name, mac_add=mac_add)
 
-    def busDriverLogin(self, vehicle: str, name: str, mac_add: str):
-        pass
+        if result is True:
+            return p.BUSDRIVER_REGISTER_SUCCESS
+        else:
+            return p.BUSDRIVER_REGISTER_FAIL
+
+    def busDriverLogin(self, vehicleNo: str, name: str, mac_add: str) -> str:
+        result: int = self.DB.isBusDriverExist(vehicleno=vehicleNo, name=name, mac_add=mac_add)
+
+        if result == 1:
+            return p.BUSDRIVER_LOGIN_SUCCESS
+        elif result == 0:
+            return p.BUSDRIVER_LOGIN_FAIL
+        elif result == -1:
+            return p.BUSDRIVER_LOGIN_ERR
 
     def setBusDriver(self, nodeid: str, routeNo: str):
         busData = self.getBusArrivalData(nodeId=nodeid, routeNo=routeNo)

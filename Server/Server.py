@@ -41,13 +41,30 @@ class Server:
                 await self.userHandler(reader=reader, writer=writer, userName=msg[1],
                                        userPhone=msg[2], userMac=msg[3])
 
-        elif msg[0] == "20":  # Bus Driver Login
+        elif msg[0] == p.USER_GPS_LOGIN:
+            if len(msg) == 4:
+                msg_result = self.userMgr.userLogin(name=msg[1], phone_num=msg[2], mac_add=msg[3])
+
+                if msg_result == p.USER_LOGIN_SUCCESS:
+                    msg_result = p.USER_GPS_LOGIN_SUCCESS
+                else:
+                    msg_result = p.USER_GPS_LOGIN_FAIL
+            else:
+                msg_result = p.USER_LOGIN_CLIENT_ERR
+
+            writer.write(msg_result.encode())
+            await writer.drain()
+
+            if msg_result == p.USER_GPS_LOGIN_SUCCESS:
+                await self.userGPSHandler(reader=reader, writer=writer, userMac=msg[3])
+
+        elif msg[0] == p.BUSDRIVER_REGISTER:  # Bus Driver Register
             pass
 
-        elif msg[0] == "21":  # Bus Driver Login
+        elif msg[0] == p.BUSDRIVER_LOGIN:  # Bus Driver Login
             pass
 
-        elif msg[0] == "30":  # Raspberry PI InfoProvider Connection
+        elif msg[0] == p.RASP_INFO_LOGIN:  # Raspberry PI InfoProvider Connection
             if len(msg) == 4:
                 msg_result = p.RASP_INFO_LOGIN_SUCCESS
             else:
@@ -60,7 +77,7 @@ class Server:
                 await self.RaspInfoHandler(reader=reader, writer=writer, nodeId=msg[1],
                                            lati=float(msg[2]), long=float(msg[3]))
 
-        elif msg[0] == "40":  # Raspberry PI Detector Connection
+        elif msg[0] == p.RASP_DETECTOR_LOGIN:  # Raspberry PI Detector Connection
             if len(msg) == 2:
                 msg_result = p.RASP_DETECTOR_LOGIN_SUCCESS
             else:

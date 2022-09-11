@@ -135,7 +135,8 @@ class UserManager:
         self.busComingInfo[node_id] = routeNo
 
     def removeBusComing(self, node_id: str) -> None:
-        self.busComingInfo.__delitem__(node_id)
+        if node_id in self.busComingInfo.keys():
+            self.busComingInfo.__delitem__(node_id)
 
     def getBusComing(self, node_id: str) -> str or None:
         if node_id in self.busComingInfo.keys():

@@ -1,3 +1,5 @@
+from typing import Tuple, Dict, Any, List
+
 import FileManager
 import BusTracker
 
@@ -11,6 +13,7 @@ class BusManager:
     def setUp(self) -> bool:
         self.BusData = FileManager.configManager("./buddy_bus.json")
         self.BusTracker = BusTracker.BusTracker()
+
         if self.BusData.isKey("cityCode") is False or self.BusData.isKey("nodeId") is False:
             print('[RaspBerry PI][ERR] 초기값을 설정해야 합니다!')
             print('[RaspBerry PI] cityCode : ', end='')
@@ -30,7 +33,7 @@ class BusManager:
 
         result = self.BusTracker.getSttnNoList(cityCode=new_CityCode, nodeNm=new_NodeNm, nodeNo=new_NodeNo)
 
-        if result is None:
+        if result is None or len(result) == 0:
             print("[RaspBerry PI][ERR] 위치 정보가 잘못되었습니다!")
             return False
 
@@ -38,8 +41,10 @@ class BusManager:
         self.BusData.setValue('nodeId', new_NodeId)
         self.BusData.setValue('nodeNo', new_NodeNo)
         self.BusData.setValue('nodeNm', new_NodeNm)
+        print(result)
         self.BusData.setValue('lati', result[new_NodeId]['gpslati'])
         self.BusData.setValue('long', result[new_NodeId]['gpslong'])
+        self.BusData.setValue('busDict', dict())
         print(f'[RaspBerry PI] cityCode : {new_CityCode} , nodeId : {new_NodeId}, nodeNo : {new_NodeNo},'
               f' nodeNm : {new_NodeNm}로 설정되었습니다.')
 
@@ -61,7 +66,7 @@ class BusManager:
         return True
 
     def setBusDict(self, busDict: dict) -> None:
-        self.BusData.setValue('busList', busDict)
+        self.BusData.setValue('busDict', busDict)
 
     def getBusRouteNoList(self) -> list:
         busdict = self.getBusDict()
@@ -163,12 +168,16 @@ class BusManager:
 
         return result
 
-    def getAllBusFastArrival(self, limitFastNode=1) -> dict:
+    def getAllBusFastArrival(self, limitFastNode=1) -> tuple[dict[Any, list[int | Any] | None], bool]:
         routeNoList = self.getBusRouteNoList()
         result = dict()
+        isExist = False
         for routeNo in routeNoList:
             result[routeNo] = self.getSpecificBusFastArrival(routeNo=routeNo, limitFastNode=limitFastNode)
-        return result
+            if result[routeNo] is not None:
+                isExist = True
+
+        return result, isExist
 
     def getCityCode(self) -> str:
         return self.BusData.getValue('cityCode')
@@ -198,3 +207,11 @@ class BusManager:
             self.BusData.removeKey(routeNo)
             return True
         return False
+
+
+if __name__ == "__main__":
+    busMgr = BusManager()
+    busMgr.setUp()
+    busMgr.resetBusStop(new_CityCode='32020', new_NodeId='WJB251036043', new_NodeNo='36043',
+                        new_NodeNm='연세대 복지타운')
+    busMgr.addBusRoute('32020', routeId='WJB251000068', routeNo='30')  # 추후 중복 예외 처리

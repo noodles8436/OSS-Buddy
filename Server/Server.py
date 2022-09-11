@@ -1,4 +1,6 @@
 import asyncio
+import traceback
+
 import UserManager
 import PROTOCOL as p
 
@@ -19,6 +21,8 @@ class Server:
     async def loginHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         data: bytes = await reader.read(p.SERVER_PACKET_SIZE)
         msg = data.decode().split(p.TASK_SPLIT)
+
+        print('ACCESS TRY : ', msg)
 
         if msg[0] == p.USER_REGISTER:  # User Register
             if len(msg) == 4:
@@ -194,20 +198,25 @@ class Server:
     async def RaspInfoHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, nodeId: str,
                               lati: float, long: float):
 
-        writer.write(p.RASP_GET_NODE_NM.encode())
-        await writer.drain()
-
-        data = await reader.read(p.SERVER_PACKET_SIZE)
-        msg = data.decode().split(p.TASK_SPLIT)
-        self.userMgr.setBusStopData(nodeId=nodeId, lati=lati, long=long, nodeNm=msg[1])
-
         try:
+
+            await asyncio.sleep(p.CONNECTION_PREPARING)
+
+            writer.write(p.RASP_GET_NODE_NM.encode())
+            await writer.drain()
+
+            data = await reader.read(p.SERVER_PACKET_SIZE)
+            msg = data.decode().split(p.TASK_SPLIT)
+            self.userMgr.setBusStopData(nodeId=nodeId, lati=lati, long=long, nodeNm=msg[1])
+
             while True:
                 writer.write(p.RASP_REQ_ALL_BUS_ARR.encode())
                 await writer.drain()
 
                 data = await reader.read(p.SERVER_PACKET_SIZE)
                 msg = data.decode().split(p.TASK_SPLIT)
+
+                print('INFO : ', msg)
 
                 cnt: int = int(msg[1])
 
@@ -231,6 +240,8 @@ class Server:
                 data = await reader.read(p.SERVER_PACKET_SIZE)
                 msg = data.decode().split(p.TASK_SPLIT)
 
+                print('detector received : ', msg)
+
                 if msg[0] == p.RASP_DETECTOR_BUS_CATCH:
                     if len(msg) == 2:
                         routeNo = msg[1]
@@ -240,6 +251,9 @@ class Server:
                     self.userMgr.removeBusComing(node_id=nodeId)
 
         except Exception as e:
+            print('Exception Error')
+            import traceback
+            print(traceback.format_exc())
             await writer.drain()
             writer.close()
             await writer.wait_closed()
@@ -326,5 +340,5 @@ class Server:
 
 
 if __name__ == "__main__":
-    server = Server(ip='localhost', port=7777)
+    server = Server(ip='115.86.19.194', port=7788)
     asyncio.run(server.run_server())

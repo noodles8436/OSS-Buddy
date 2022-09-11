@@ -1,5 +1,4 @@
 import asyncio
-from typing import List
 import Server.PROTOCOL as p
 import BusManager
 import Detector
@@ -107,7 +106,7 @@ class RaspMain:
 
                 while True:
                     recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
-                    msg: List[str] = recv.decode().split(p.TASK_SPLIT)
+                    msg: list[str] = recv.decode().split(p.TASK_SPLIT)
 
                     if msg[0] == p.RASP_REQ_ALL_BUS_ARR:
                         _busDict = self.busManager.getAllBusFastArrival()

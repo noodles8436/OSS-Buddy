@@ -1,5 +1,5 @@
 import asyncio
-import Server.PROTOCOL as p
+import PROTOCOL as p
 import BusManager
 import Detector
 

@@ -73,7 +73,7 @@ class Server:
             await writer.drain()
 
         elif msg[0] == p.BUSDRIVER_LOGIN:  # Bus Driver Login
-            if len(msg) == 4:
+            if len(msg) == 5:
                 msg_result = self.userMgr.busDriverLogin(vehicleNo=msg[1], name=msg[2], mac_add=msg[3])
             else:
                 msg_result = p.BUSDRIVER_LOGIN_FAIL
@@ -113,83 +113,95 @@ class Server:
                           userName: str, userPhone: str, userMac: str):
         peername = writer.get_extra_info('peername')
         print(f"[SERVER] {peername} is connected!")
-        while True:
-            # 클라이언트 위치 확인
-            while self.userMgr.getUserLocation(mac_add=userMac) is None:
-                await asyncio.sleep(p.LOCATION_SEARCH_TERM)
-                connectCheck = await self.connectionCheck(reader=reader, writer=writer)
-                if connectCheck is False:
-                    msg_result = p.KICK_USER
-                    writer.write(msg_result.encode())
-                    await writer.drain()
-                    print(f"[SERVER] {peername} is disconnected!")
-                    return
 
-            msg_result = p.USER_LOCATION_FIND_SUCCESS
-            writer.write(msg_result.encode())
-            await writer.drain()
+        try:
+            while True:
+                # 클라이언트 위치 확인
+                while self.userMgr.getUserLocation(mac_add=userMac) is None:
+                    await asyncio.sleep(p.LOCATION_SEARCH_TERM)
+                    connectCheck = await self.connectionCheck(reader=reader, writer=writer)
+                    if connectCheck is False:
+                        msg_result = p.KICK_USER
+                        writer.write(msg_result.encode())
+                        await writer.drain()
+                        print(f"[SERVER] {peername} is disconnected!")
+                        return
 
-            # 클라이언트 위치 이후 처리
-            while self.userMgr.getUserLocation(mac_add=userMac) is not None:
-                # 예약, 취소 명령 받기
-                data = await reader.read(p.SERVER_PACKET_SIZE)
-                msg = data.decode().split(p.TASK_SPLIT)
+                msg_result = p.USER_LOCATION_FIND_SUCCESS
+                writer.write(msg_result.encode())
+                await writer.drain()
 
-                if msg[0] == p.USER_BUS_CAN_RESERVATION:
-                    if len(msg) == 2:
-                        msg_result = self.busCheck(userMac=userMac, routeNo=msg[1])
-                    else:
-                        msg_result = p.USER_BUS_CAN_RESERVATION_NO
+                # 클라이언트 위치 이후 처리
+                while self.userMgr.getUserLocation(mac_add=userMac) is not None:
+                    # 예약, 취소 명령 받기
+                    data = await reader.read(p.SERVER_PACKET_SIZE)
+                    msg = data.decode().split(p.TASK_SPLIT)
 
-                    writer.write(msg_result.encode())
-                    await writer.drain()
+                    if msg[0] == p.USER_BUS_CAN_RESERVATION:
+                        if len(msg) == 2:
+                            msg_result = self.busCheck(userMac=userMac, routeNo=msg[1])
+                        else:
+                            msg_result = p.USER_BUS_CAN_RESERVATION_NO
 
-                elif msg[0] == p.USER_BUS_RESERVATION_CONFIRM:
-                    if len(msg) == 2:
-                        msg_result = self.busReservation(userMac=userMac, routeNo=msg[1])
-                    else:
-                        msg_result = p.USER_BUS_RESERVATION_CONFIRM_FAIL
+                        writer.write(msg_result.encode())
+                        await writer.drain()
 
-                    writer.write(msg_result.encode())
-                    await writer.drain()
+                    elif msg[0] == p.USER_BUS_RESERVATION_CONFIRM:
+                        if len(msg) == 2:
+                            msg_result = self.busReservation(userMac=userMac, routeNo=msg[1])
+                        else:
+                            msg_result = p.USER_BUS_RESERVATION_CONFIRM_FAIL
 
-                    if msg_result == p.USER_BUS_RESERVATION_CONFIRM_SUCCESS:
-                        while True:
-                            try:
-                                data: bytes = await asyncio.wait_for(reader.read(p.SERVER_PACKET_SIZE),
-                                                                     p.BUS_REALTIME_SEARCH_TERM)
-                                isCancel = data.decode().split(p.TASK_SPLIT)[0]
-                                if isCancel == p.USER_BUS_CANCEL:
-                                    msg_result = self.busCancel(userMac=userMac)
-                                    writer.write(msg_result.encode())
-                                    await writer.drain()
-                                    break
+                        writer.write(msg_result.encode())
+                        await writer.drain()
 
-                            except asyncio.TimeoutError:
-                                if self.isBusAlarmTime(userMac=userMac) is True:
-                                    # Alarm User
-                                    writer.write(p.USER_BUS_ARRIVED_VIBE.encode())
-                                    await writer.drain()
-                                    break
+                        if msg_result == p.USER_BUS_RESERVATION_CONFIRM_SUCCESS:
+                            while True:
+                                try:
+                                    data: bytes = await asyncio.wait_for(reader.read(p.SERVER_PACKET_SIZE),
+                                                                         p.BUS_REALTIME_SEARCH_TERM)
+                                    isCancel = data.decode().split(p.TASK_SPLIT)[0]
+                                    if isCancel == p.USER_BUS_CANCEL:
+                                        msg_result = self.busCancel(userMac=userMac)
+                                        writer.write(msg_result.encode())
+                                        await writer.drain()
+                                        break
 
-                elif msg[0] == p.USER_REQ_BUS_LIST:
-                    node_id = self.userMgr.getUserLocation(mac_add=userMac)
-                    result: dict or None = self.userMgr.getAllBusArrivalData(nodeId=node_id)
+                                except asyncio.TimeoutError:
+                                    if self.isBusAlarmTime(userMac=userMac) is True:
+                                        # Alarm User
+                                        writer.write(p.USER_BUS_ARRIVED_VIBE.encode())
+                                        await writer.drain()
+                                        break
 
-                    _msg_result = ""
-                    print(result)
-                    if result is None:
-                        _msg_result = p.USER_REQ_BUS_LIST + p.TASK_SPLIT + "00"
-                    else:
-                        _msg_result = p.USER_REQ_BUS_LIST + p.TASK_SPLIT + str(len(result.keys()))
-                        for routeNo in result.keys():
-                            _msg_result += p.TASK_SPLIT + routeNo + ":" + str(result[routeNo][0])
-                    print(_msg_result)
-                    writer.write(_msg_result.encode())
-                    await writer.drain()
+                    elif msg[0] == p.USER_REQ_BUS_LIST:
+                        node_id = self.userMgr.getUserLocation(mac_add=userMac)
+                        result: dict or None = self.userMgr.getAllBusArrivalData(nodeId=node_id)
 
+                        _msg_result = ""
+                        print(result)
+                        if result is None:
+                            _msg_result = p.USER_REQ_BUS_LIST + p.TASK_SPLIT + "00"
+                        else:
+                            _msg_result = p.USER_REQ_BUS_LIST + p.TASK_SPLIT + str(len(result.keys()))
+                            for routeNo in result.keys():
+                                _msg_result += p.TASK_SPLIT + routeNo + ":" + str(result[routeNo][0])
+                        print(_msg_result)
+                        writer.write(_msg_result.encode())
+                        await writer.drain()
+
+                # 클라이언트 위치 확인 안됨
+                msg_result = p.USER_LOCATION_FIND_FAIL
+                writer.write(msg_result.encode())
+                await writer.drain()
+
+        except ConnectionError or ConnectionResetError:
+            self.userMgr.removeUserReserveBus(user_mac=userMac)
+            return
+
+        except Exception:
             # 클라이언트 위치 확인 안됨
-            msg_result = p.USER_LOCATION_FIND_FAIL
+            msg_result = p.KICK_USER
             writer.write(msg_result.encode())
             await writer.drain()
 
@@ -206,8 +218,10 @@ class Server:
                 else:
                     self.userMgr.setUserLocation(user_mac=userMac, node_id=near_busStop)
 
+        except ConnectionError or ConnectionResetError:
+            self.userMgr.removeUserLocation(user_mac=userMac)
+
         except Exception:
-            print(traceback.format_exc())
             await writer.drain()
             writer.close()
             await writer.wait_closed()
@@ -222,7 +236,6 @@ class Server:
 
             data = await reader.read(p.SERVER_PACKET_SIZE)
             msg = data.decode().split(p.TASK_SPLIT)
-            print('NodeNm : ', msg[1])
             self.userMgr.setBusStopData(nodeId=nodeId, lati=lati, long=long, nodeNm=msg[1])
             await asyncio.sleep(p.CONNECTION_PREPARING)
 
@@ -232,8 +245,6 @@ class Server:
 
                 data = await reader.read(p.SERVER_PACKET_SIZE)
                 msg = data.decode().split(p.TASK_SPLIT)
-
-                print('INFO : ', msg)
 
                 cnt: int = int(msg[1])
                 result = dict()
@@ -247,8 +258,12 @@ class Server:
 
                 await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
 
+        except ConnectionError or ConnectionResetError:
+            self.userMgr.removeBusComing(node_id=nodeId)
+            self.userMgr.removeBusArrivalData(nodeId=nodeId)
+            return
+
         except Exception:
-            print('raised error')
             await writer.drain()
             writer.close()
             await writer.wait_closed()
@@ -269,10 +284,10 @@ class Server:
                 elif msg[0] == p.RASP_DETECTOR_BUS_NONE:
                     self.userMgr.removeBusComing(node_id=nodeId)
 
+        except ConnectionResetError:
+            self.userMgr.removeBusComing(node_id=nodeId)
+
         except Exception as e:
-            print('Exception Error')
-            import traceback
-            print(traceback.format_exc())
             await writer.drain()
             writer.close()
             await writer.wait_closed()
@@ -292,7 +307,7 @@ class Server:
                     _node_name: str = reserve[1]
                     _node_id: str = reserve[2]
 
-                    if _node_left <= 3:
+                    if _node_left <= node_left_alarm:
                         msg_result = p.BUSDRIVER_NODE_ANNOUNCE + p.TASK_SPLIT + _node_name \
                                      + p.TASK_SPLIT + str(_node_left)
 
@@ -300,9 +315,13 @@ class Server:
                         await writer.drain()
 
                         if _node_left <= 1:
-                            self.userMgr.removeBusDriver(vehicleNo=vehlcleNo, nodeId=_node_id)
+                            self.userMgr.removeBusDriverStackNode(vehicleNo=vehlcleNo, nodeId=_node_id)
 
                 await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
+
+        except ConnectionError or ConnectionResetError:
+            self.userMgr.busDriverLogOut(vehicleNo=vehlcleNo)
+            return
 
         except Exception:
             await writer.drain()
@@ -334,11 +353,16 @@ class Server:
 
     def busReservation(self, userMac: str, routeNo: str) -> str:
         nodeId = self.userMgr.getUserLocation(mac_add=userMac)
+        print("User Location : ", nodeId)
         if nodeId is None:
             return p.USER_BUS_RESERVATION_CONFIRM_FAIL
-
-        self.userMgr.setUserReserveBus(user_mac=userMac, node_id=nodeId, routeNo=routeNo)
-        return p.USER_BUS_RESERVATION_CONFIRM_SUCCESS
+        print("AAAAAAAAAA START")
+        result: bool = self.userMgr.setUserReserveBus(user_mac=userMac, node_id=nodeId, routeNo=routeNo)
+        print('Reservation : ', result)
+        if result:
+            return p.USER_BUS_RESERVATION_CONFIRM_SUCCESS
+        else:
+            return p.USER_BUS_RESERVATION_CONFIRM_FAIL
 
     def busCancel(self, userMac: str) -> str:
         self.userMgr.removeUserReserveBus(user_mac=userMac)
@@ -352,7 +376,11 @@ class Server:
         node_id = result[0], route_id = result[1]
         comingBus = self.userMgr.getBusComing(node_id=node_id)
 
-        if comingBus == route_id:
+        arrdata: list[int, str] or None = self.userMgr.getBusArrivalData(nodeId=node_id, routeNo=route_id)
+        if arrdata is None:
+            return False
+
+        if comingBus == route_id and arrdata[0] <= 3:
             return True
         else:
             return False

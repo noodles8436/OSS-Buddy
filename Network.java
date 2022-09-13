@@ -20,8 +20,9 @@ public class Network {
     private static String userName;
     private static String userPhone;
     private static String userUID;
-    private static double user_Lati;
-    private static double user_Long;
+
+    private static double _lati;
+    private static double _long;
 
     public static Network start() {
         if (instance == null)
@@ -59,7 +60,6 @@ public class Network {
         }
     }
 
-
     // API
 
     public static boolean register() {
@@ -68,6 +68,14 @@ public class Network {
         send(sendMsg);
 
         String recvMsg = recv();
+
+        try {
+            stop();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        init();
 
         if(recvMsg.equals(PROTOCOL.USER_REGISTER_SUCCESS)) {
             return true;
@@ -120,6 +128,7 @@ public class Network {
         String recvMsg = recv();
         String[] msgResult = recvMsg.split(PROTOCOL.TASK_SPLIT);
         ArrayList<BusArrival> result = new ArrayList<BusArrival>();
+
 
         if(msgResult[0].equals(PROTOCOL.USER_REQ_BUS_LIST)) {
 
@@ -222,7 +231,6 @@ public class Network {
         }
     }
 
-
     // Please Fill methods below
 
     public static void setUserName(String name) {
@@ -237,12 +245,12 @@ public class Network {
         userUID = UID;
     }
 
-    public static void setUser_Lati(double lati) {
-        user_Lati = lati;
+    public static void setUserLati(double __lati) {
+        _lati = __lati;
     }
 
-    public static void setUser_Long(double long1) {
-        user_Long = long1;
+    public static void setUserLong(double __long) {
+        _long = __long;
     }
 
     public static String getUserName() {
@@ -254,16 +262,15 @@ public class Network {
     }
 
     public static String getUserUID() {
-
         return userUID;
     }
 
     public static double getUserLati() {
-        return 37.280122;
+        return _lati;
     }
 
     public static double getUserLong() {
-        return 127.91001;
+        return _long;
     }
 
 

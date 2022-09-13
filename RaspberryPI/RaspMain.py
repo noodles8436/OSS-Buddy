@@ -1,79 +1,21 @@
 import asyncio
+import socket
+import threading
+import time
+
 import Server.PROTOCOL as p
 import BusManager
 import Detector
 
 
-class RaspMain:
+class busDetectorThread(threading.Thread):
 
-    def __init__(self, host: str, port: int):
-        self.busManager = BusManager.BusManager()
-        if self.busManager.setUp() is False:
-            return
-
-        print(self.busManager.getNodeLatiLong())
-        self.Detector = Detector.Detector()
+    def __init__(self, host, port, busManager):
+        threading.Thread.__init__(self)
         self.host = host
         self.port = port
-
-    async def start(self):
-        self.serverTask = await asyncio.gather(self.busDetector(), self.infoProvider())
-
-    async def busDetector(self) -> None:
-
-        reader: asyncio.StreamReader
-        writer: asyncio.StreamWriter
-
-        while True:
-            try:
-                print("[Rasp Detector] Try to Connect Server")
-                reader, writer = await asyncio.open_connection(host=self.host, port=self.port)
-                print("[Rasp Detector] Server Connected")
-
-                msg = p.RASP_DETECTOR_LOGIN + p.TASK_SPLIT + self.busManager.getNodeId()
-                writer.write(msg.encode())
-                await writer.drain()
-                print("[Rasp Detector] Try to Login Server")
-
-                recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
-                _msg: str = recv.decode()
-
-                if _msg != p.RASP_DETECTOR_LOGIN_SUCCESS:
-                    print("[Rasp Detector][ERR] Server Login Failed!")
-                    await asyncio.sleep(1)
-                    continue
-
-                print("[Rasp Detector] Server Login Success")
-
-                while True:
-                    _send = ""
-                    _pred = self.Detector.detect()
-
-                    print("_pred : ", _pred)
-
-                    if _pred is not None:
-                        routeNo = self.bus_number_filter(_pred=_pred)
-                    else:
-                        routeNo = None
-
-                    if routeNo is None:
-                        _send = p.RASP_DETECTOR_BUS_NONE
-                    else:
-                        _send = p.RASP_DETECTOR_BUS_CATCH + p.TASK_SPLIT \
-                              + self.busManager.getBusRouteIdFromNo(routeNo=routeNo) + p.TASK_SPLIT + routeNo
-
-                    print('send Detector : ', _send)
-
-                    writer.write(_send.encode())
-                    await writer.drain()
-                    await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
-
-            except Exception as e:
-                print(e.args[0])
-                if writer is not None:
-                    await writer.drain()
-                    writer.close()
-                    await writer.wait_closed()
+        self.Detector = Detector.Detector()
+        self.busManager = busManager
 
     def bus_number_filter(self, _pred: list[list[str, float, int]]) -> str or None:
         busList = self.busManager.getBusRouteNoList()
@@ -86,6 +28,79 @@ class RaspMain:
                     routeNo = _text
 
         return routeNo
+
+    def run(self):
+        client_socket = None
+
+        while True:
+            try:
+                print("[Rasp Detector] Try to Connect Server")
+                # reader, writer = await asyncio.open_connection(host=self.host, port=self.port)
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.connect((self.host, self.port))
+                print("[Rasp Detector] Server Connected")
+
+                msg = p.RASP_DETECTOR_LOGIN + p.TASK_SPLIT + self.busManager.getNodeId()
+                # writer.write(msg.encode())
+                # await writer.drain()
+                client_socket.sendall(msg.encode())
+                print("[Rasp Detector] Try to Login Server")
+
+                recv: bytes = client_socket.recv(p.SERVER_PACKET_SIZE)
+                _msg: str = recv.decode()
+
+                if _msg != p.RASP_DETECTOR_LOGIN_SUCCESS:
+                    print("[Rasp Detector][ERR] Server Login Failed!")
+                    time.sleep(1)
+                    continue
+
+                print("[Rasp Detector] Server Login Success")
+
+                while True:
+                    _send = ""
+                    _pred = self.Detector.detect()
+
+                    if _pred is not None:
+                        routeNo = self.bus_number_filter(_pred=_pred)
+                    else:
+                        routeNo = None
+
+                    if routeNo is None:
+                        _send = p.RASP_DETECTOR_BUS_NONE
+                    else:
+                        _send = p.RASP_DETECTOR_BUS_CATCH + p.TASK_SPLIT \
+                                + self.busManager.getBusRouteIdFromNo(routeNo=routeNo) + p.TASK_SPLIT + routeNo
+
+                    client_socket.sendall(_send.encode())
+                    time.sleep(1)
+
+                    # writer.write(_send.encode())
+                    # await writer.drain()
+                    # await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
+
+            except Exception as e:
+                print(e.args[0])
+                if client_socket is not None:
+                    client_socket.close()
+
+
+class RaspMain:
+
+    def __init__(self, host: str, port: int):
+        self.serverTask = None
+        self.busManager = BusManager.BusManager()
+        if self.busManager.setUp() is False:
+            return
+
+        self.host = host
+        self.port = port
+
+        self.busDetectorThread = busDetectorThread(self.host, self.port, self.busManager)
+
+    async def start(self):
+        # self.serverTask = await asyncio.gather(self.busDetector(), self.infoProvider())
+        self.busDetectorThread.start()
+        self.serverTask = await asyncio.tasks.create_task(self.infoProvider())
 
     async def infoProvider(self) -> None:
         reader: asyncio.StreamReader
@@ -134,9 +149,9 @@ class RaspMain:
                         else:
                             _sendMsg: str = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + str(len(_busDict.keys()))
                             for _routeNo in _busDict.keys():
-                                _sendMsg += p.TASK_SPLIT + _routeNo + ":" + _busDict[_routeNo][0] \
-                                            + ":" + _busDict[_routeNo][1]
-
+                                _sendMsg += p.TASK_SPLIT + _routeNo + ":" + str(_busDict[_routeNo][0]) \
+                                            + ":" + str(_busDict[_routeNo][1])
+                        print('send to server', _sendMsg)
                         writer.write(_sendMsg.encode())
                         await writer.drain()
 
@@ -171,6 +186,7 @@ class RaspMain:
 
                     elif msg[0] == p.RASP_GET_NODE_NM:
                         _sendMsg: str = p.RASP_GET_NODE_NM + p.TASK_SPLIT + self.busManager.getNodeNm()
+                        print(_sendMsg)
                         writer.write(_sendMsg.encode())
                         await writer.drain()
 

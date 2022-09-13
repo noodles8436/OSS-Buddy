@@ -59,6 +59,8 @@ class Server:
             writer.write(msg_result.encode())
             await writer.drain()
 
+            print(msg_result)
+
             if msg_result == p.USER_GPS_LOGIN_SUCCESS:
                 await self.userGPSHandler(reader=reader, writer=writer, userMac=msg[3])
 
@@ -170,6 +172,22 @@ class Server:
                                     await writer.drain()
                                     break
 
+                elif msg[0] == p.USER_REQ_BUS_LIST:
+                    node_id = self.userMgr.getUserLocation(mac_add=userMac)
+                    result: dict or None = self.userMgr.getAllBusArrivalData(nodeId=node_id)
+
+                    _msg_result = ""
+                    print(result)
+                    if result is None:
+                        _msg_result = p.USER_REQ_BUS_LIST + p.TASK_SPLIT + "00"
+                    else:
+                        _msg_result = p.USER_REQ_BUS_LIST + p.TASK_SPLIT + str(len(result.keys()))
+                        for routeNo in result.keys():
+                            _msg_result += p.TASK_SPLIT + routeNo + ":" + str(result[routeNo][0])
+                    print(_msg_result)
+                    writer.write(_msg_result.encode())
+                    await writer.drain()
+
             # 클라이언트 위치 확인 안됨
             msg_result = p.USER_LOCATION_FIND_FAIL
             writer.write(msg_result.encode())
@@ -180,10 +198,8 @@ class Server:
             while True:
                 data = await reader.read(p.SERVER_PACKET_SIZE)
                 msg = data.decode().split(p.TASK_SPLIT)
-
                 lati = float(msg[1])
                 long = float(msg[2])
-
                 near_busStop = self.userMgr.searchNearBusStation(user_lati=lati, user_long=long)
                 if near_busStop is None:
                     self.userMgr.removeUserLocation(user_mac=userMac)
@@ -191,6 +207,7 @@ class Server:
                     self.userMgr.setUserLocation(user_mac=userMac, node_id=near_busStop)
 
         except Exception:
+            print(traceback.format_exc())
             await writer.drain()
             writer.close()
             await writer.wait_closed()
@@ -199,15 +216,15 @@ class Server:
                               lati: float, long: float):
 
         try:
-
             await asyncio.sleep(p.CONNECTION_PREPARING)
-
             writer.write(p.RASP_GET_NODE_NM.encode())
             await writer.drain()
 
             data = await reader.read(p.SERVER_PACKET_SIZE)
             msg = data.decode().split(p.TASK_SPLIT)
+            print('NodeNm : ', msg[1])
             self.userMgr.setBusStopData(nodeId=nodeId, lati=lati, long=long, nodeNm=msg[1])
+            await asyncio.sleep(p.CONNECTION_PREPARING)
 
             while True:
                 writer.write(p.RASP_REQ_ALL_BUS_ARR.encode())
@@ -219,17 +236,19 @@ class Server:
                 print('INFO : ', msg)
 
                 cnt: int = int(msg[1])
-
                 result = dict()
 
                 for i in range(2, cnt + 2):
-                    _busData = msg[i].split(p.TASK_SPLIT)
+                    _busData = msg[i].split(":")
+                    print(_busData)
                     result[_busData[0]] = [int(_busData[1]), _busData[2]]
 
                 self.userMgr.setBusArrivalData(nodeId=nodeId, arrivalDict=result)
+
                 await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
 
         except Exception:
+            print('raised error')
             await writer.drain()
             writer.close()
             await writer.wait_closed()

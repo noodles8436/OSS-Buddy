@@ -18,6 +18,10 @@ public class Network {
 	private static String address = "115.86.19.194";
 	private static int port = 7788;
 	
+	private static String userName;
+	private static String userPhone;
+	private static String userUID;
+	
 	public static Network start() {
 		if (instance == null)
 			instance = new Network();
@@ -56,6 +60,20 @@ public class Network {
 	
 	
 	// API
+	
+	public static boolean register() {
+		String sendMsg = PROTOCOL.USER_REGISTER+ PROTOCOL.TASK_SPLIT + getUserName() 
+		+ PROTOCOL.TASK_SPLIT + getUserPhone() + PROTOCOL.TASK_SPLIT + getUserMac();
+		send(sendMsg);
+		
+		String recvMsg = recv();
+		
+		if(recvMsg.equals(PROTOCOL.USER_REGISTER_SUCCESS)) {
+			return true;
+		}else {
+			return false;
+		}
+	}
 	
 	public static boolean login() {
 		String sendMsg = PROTOCOL.USER_LOGIN + PROTOCOL.TASK_SPLIT + getUserName() 
@@ -207,16 +225,28 @@ public class Network {
 	
 	// Please Fill methods below
 	
+	public static void setUserName(String name) {
+		userName = name;
+	}
+	
+	public static void setUserPhone(String phone) {
+		userPhone = phone;
+	}
+	
+	public static void setUserUID(String UID) {
+		userUID = UID;
+	}
+	
 	public static String getUserName() {
-		return "김태욱";
+		return userName;
 	}
 	
 	public static String getUserPhone() {
-		return "01080305169";
+		return userPhone;
 	}
 	
 	public static String getUserMac() {
-		return "AB:AB:AB:AB:AB:AB";
+		return userUID;
 	}
 	
 	public static double getUserLati() {

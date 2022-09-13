@@ -3,7 +3,7 @@ import socket
 import threading
 import time
 
-import Server.PROTOCOL as p
+import PROTOCOL as p
 import BusManager
 import Detector
 

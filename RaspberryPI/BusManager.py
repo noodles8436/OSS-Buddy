@@ -117,20 +117,17 @@ class BusManager:
 
         if self.isBusThrgh(routeNo=routeNo) is False:
             return None
-
         nodeId = self.getNodeId()
         nodeOrd = -1
         cityCode = self.getBusCityCodeFromNo(routeNo=routeNo)
         routeId = self.getBusRouteIdFromNo(routeNo=routeNo)
-
-        if routeId is None or cityCode:
+        if routeId is None or cityCode is None:
             return None
-
         busThrghSttnList = self.BusTracker.getBusThrghSttnList(cityCode=cityCode, routeId=routeId)
 
         for _nodeOrd in busThrghSttnList['nodeDict'].keys():
             if busThrghSttnList['nodeDict'][_nodeOrd]['nodeid'] == nodeId:
-                nodeOrd = _nodeOrd
+                nodeOrd = int(_nodeOrd)
                 break
 
         if nodeOrd == -1:
@@ -151,8 +148,7 @@ class BusManager:
 
         else:
             for key in getAllBusinRoute.keys():
-
-                diff = nodeOrd - getAllBusinRoute[key]['nodeord']
+                diff = nodeOrd - int(getAllBusinRoute[key]['nodeord'])
 
                 if nodeArrivalCount == -1 and diff > limitFastNode:
                     nodeArrivalCount = diff
@@ -165,7 +161,6 @@ class BusManager:
             return None
 
         result = [nodeArrivalCount, getAllBusinRoute[busitemKey]['vehicleNo']]
-
         return result
 
     def getAllBusFastArrival(self, limitFastNode=1) -> tuple[dict[Any, list[int | Any] | None], bool]:
@@ -186,10 +181,10 @@ class BusManager:
         return self.BusData.getValue('nodeId')
 
     def getNodeNm(self) -> str:
-        return self.BusData.getValue('nodeNo')
+        return self.BusData.getValue('nodeNm')
 
     def getNodeNo(self) -> str:
-        return self.BusData.getValue('nodeNm')
+        return self.BusData.getValue('nodeNo')
 
     def getNodeLatiLong(self) -> [float, float]:
         return [self.BusData.getValue('lati'), self.BusData.getValue('long')]
@@ -212,6 +207,8 @@ class BusManager:
 if __name__ == "__main__":
     busMgr = BusManager()
     busMgr.setUp()
-    busMgr.resetBusStop(new_CityCode='32020', new_NodeId='WJB251036043', new_NodeNo='36043',
-                        new_NodeNm='연세대 복지타운')
-    busMgr.addBusRoute('32020', routeId='WJB251000068', routeNo='30')  # 추후 중복 예외 처리
+    #busMgr.resetBusStop(new_CityCode='32020', new_NodeId='WJB251036043', new_NodeNo='36043', new_NodeNm='연세대 복지타운')
+    #busMgr.addBusRoute('32020', routeId='WJB251000074', routeNo='31')  (오류) # 추후 중복 예외 처리
+    #busMgr.addBusRoute('32020', routeId='WJB251000331', routeNo='34-1')  # 추후 중복 예외 처리
+    #busMgr.addBusRoute('32020', routeId='WJB251000082', routeNo='34')  # 추후 중복 예외 처리
+

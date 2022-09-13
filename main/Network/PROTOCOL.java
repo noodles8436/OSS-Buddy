@@ -8,6 +8,10 @@ public class PROTOCOL {
 	
 	static final String CONNECTION_CHECK = "CONNECTION_CHECK";
 	
+	static final String USER_REGISTER = "00";
+	static final String USER_REGISTER_SUCCESS = USER_REGISTER + TASK_SPLIT + "00";
+	static final String USER_REGISTER_FAIL = USER_REGISTER + TASK_SPLIT + "01";
+	
 	static final String USER_LOGIN = "01";
 	static final String USER_LOGIN_SUCCESS = USER_LOGIN + TASK_SPLIT + "00";
 	static final String USER_LOGIN_FAIL = USER_LOGIN + TASK_SPLIT + "01";

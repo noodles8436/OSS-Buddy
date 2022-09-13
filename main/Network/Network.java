@@ -99,7 +99,6 @@ public class Network {
 		String sendMsg = PROTOCOL.USER_REQ_BUS_LIST;
 		send(sendMsg);
 		String recvMsg = recv();
-		System.out.println(recvMsg);
 		String[] msgResult = recvMsg.split(PROTOCOL.TASK_SPLIT);
 		ArrayList<BusArrival> result = new ArrayList<BusArrival>();
 		

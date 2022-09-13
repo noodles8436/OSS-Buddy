@@ -1,6 +1,7 @@
 import cv2
 import Model
 
+
 class Detector:
 
     def __init__(self):
@@ -12,7 +13,7 @@ class Detector:
 
         if not ret:
             print('[DETCTOR] Failed to grab frame in Camera')
-            raise Exception #추후에 바꿔야함
+            raise Exception  # 추후에 바꿔야함
 
         return self.model.detect(frame)
 
@@ -22,4 +23,4 @@ class Detector:
 
 if __name__ == "__main__":
     detector = Detector()
-    detector.detect()
+    print(detector.detect())

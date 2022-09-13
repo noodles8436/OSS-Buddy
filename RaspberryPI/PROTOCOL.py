@@ -18,8 +18,8 @@ TASK_SPLIT = ";"
 
 CONNECTION_CHECK = "CONNECTION_CHECK"
 LOCATION_SEARCH_TERM = 1
-TIMEOUT_SEC = 10
-BUS_REALTIME_SEARCH_TERM = 1
+TIMEOUT_SEC = 100
+BUS_REALTIME_SEARCH_TERM = 10
 CONNECTION_PREPARING = 3
 
 
@@ -86,6 +86,10 @@ USER_GPS_LOGIN_FAIL = USER_GPS_LOGIN + TASK_SPLIT + "01"
 
 # (사용자 위치 전송) 10;lati;long
 USER_GPS_DATA = "10"
+
+# (탑승 가능한 버스 List 요청 ) 11;
+USER_REQ_BUS_LIST = "11"
+# (탑승 가능한 버스 List 요청 ) 11; 31;버스 개수;1번 버스:1번 버스 남은 노드;2번 버스...
 
 
 # (버스기사 등록) 20;차량번호;이름;맥주소

@@ -46,7 +46,8 @@ class UserManager:
         self.userBusStopDict[user_mac] = node_id
 
     def removeUserLocation(self, user_mac: str) -> None:
-        self.userBusStopDict.__delitem__(user_mac)
+        if user_mac in self.userBusStopDict.keys():
+            self.userBusStopDict.__delitem__(user_mac)
 
     def setUserReserveBus(self, user_mac: str, node_id: str, routeNo: str) -> None:
         if user_mac not in self.busReserveDict.keys():
@@ -127,6 +128,11 @@ class UserManager:
             arrdata: dict = self.busArrivalData[nodeId]
             if routeNo in arrdata.keys():
                 return arrdata[routeNo]
+        return None
+
+    def getAllBusArrivalData(self, nodeId: str) -> dict or None:
+        if nodeId in self.busArrivalData.keys():
+            return self.busArrivalData[nodeId]
         return None
 
     # RaspBerry PI Detection Section

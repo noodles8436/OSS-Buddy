@@ -1,21 +1,16 @@
 package com.djy.budy;
 
 import static android.speech.tts.TextToSpeech.ERROR;
-
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
 import java.util.Locale;
 
 public class ReservationActivity extends AppCompatActivity {
+    public static FirebaseAuth currentFirebaseUser;
     private TextToSpeech tts;
     int busn=0;
     int[] busnum = {22,23,24};
@@ -70,9 +65,6 @@ public class ReservationActivity extends AppCompatActivity {
                 return false;
             }
         });
-        //유저 uid get
-        FirebaseUser currentFirebaseUser = FirebaseAuth.getInstance().getCurrentUser() ;
-        Toast.makeText(this, "" + currentFirebaseUser.getUid(), Toast.LENGTH_SHORT).show();
     }
 
     public int changnum(int[] bnum) {

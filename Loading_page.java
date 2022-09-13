@@ -1,10 +1,10 @@
 package com.djy.budy;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class Loading_page extends AppCompatActivity {
 
@@ -20,7 +20,7 @@ public class Loading_page extends AppCompatActivity {
                  startActivity(new Intent(Loading_page.this,LoginActivity.class));
                 finish();
             }
-        }, 2000);
+        }, 3000);
 
 
     }

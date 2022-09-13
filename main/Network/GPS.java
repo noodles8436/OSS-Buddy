@@ -43,7 +43,6 @@ public class GPS extends Thread{
 					String sendMsg = PROTOCOL.USER_GPS_DATA + PROTOCOL.TASK_SPLIT;
 					sendMsg += Double.toString(Network.getUserLati()) + PROTOCOL.TASK_SPLIT;
 					sendMsg += Double.toString(Network.getUserLong());
-					System.out.println(sendMsg);
 					send(sendMsg);
 					try {
 						Thread.sleep(1000);
@@ -61,7 +60,6 @@ public class GPS extends Thread{
 		send(sendMsg);
 		
 		String recvMsg = recv();
-		System.out.println(recvMsg);
 		if(recvMsg.equals(PROTOCOL.USER_GPS_LOGIN_SUCCESS)) {
 			return true;
 		}else {

@@ -11,14 +11,15 @@ import android.view.GestureDetector;
 import android.view.View;
 import android.widget.Button;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     private TextToSpeech tts;
+    String next_route_nu=null;
     int busn=0;
-    int[] busnum = {22,23,24};
-    final int[] identify = {0};
-    final int[] k = {0};
+    String identify=null;
+    String k=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
         resbutton.setOnClickListener(new DoubleClickListener() {
             @Override
             public void onDoubleClick() {
-                k[0] = changnum(busnum);
-                identify[0] = k[0];
-                resbutton.setText(String.valueOf(k[0]));
+                k = changnum().getRouteNo();
+                identify = k;
+                resbutton.setText(String.valueOf(k));
                 tts.speak(String.valueOf(resbutton.getText()), TextToSpeech.QUEUE_FLUSH,null);
 
 
@@ -59,24 +60,41 @@ public class MainActivity extends AppCompatActivity {
             //길게 클릭할 때
             @Override
             public boolean onLongClick(View view) {
-                if (identify[0]==0) {
+                if (identify.equals(null)) {
                     tts.speak("버스를 찾으시려면 더블클릭으로 넘겨주세요", TextToSpeech.QUEUE_FLUSH, null);
                 } else {
-                    tts.speak(String.valueOf(identify[0]) + "버스로 예약하시겠습니까?", TextToSpeech.QUEUE_FLUSH, null);
-
+                    tts.speak(identify + "버스로 예약하시겠습니까?", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 return false;
             }
         });
     }
 
-    public int changnum(int[] bnum) {
-        if (busn >= bnum.length - 1) {
-            busn = 0;
-        } else
-            busn++;
-        int resultbnum = bnum[busn];
 
-        return resultbnum;
+
+    public BusArrival changnum() {
+        int index =0;
+        int nextint=0;
+        ArrayList<BusArrival> buslist=Network.getBusList();
+        if(next_route_nu==null){
+            if(buslist.size()>1)
+                next_route_nu= buslist.get(1).getRouteNo();
+            return buslist.get(0);
+        }
+        else{
+            if(buslist.size()>1) {
+                for (int i = 0; i < buslist.size(); i++) {
+                    if (next_route_nu.equals(buslist.get(i))) {
+                        index = i;
+                        break;
+                    }
+                }
+                nextint=index+1;
+                if(nextint>buslist.size())
+                    nextint=0;
+            }
+            next_route_nu= buslist.get(nextint).getRouteNo();
+            return buslist.get(index);
+        }
     }
 }

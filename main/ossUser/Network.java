@@ -23,6 +23,9 @@ public class Network {
 	private static String userPhone;
 	private static String userUID;
 	
+	private static double _lati;
+	private static double _long;
+	
 	public static Network start() {
 		if (instance == null)
 			instance = new Network();
@@ -244,6 +247,14 @@ public class Network {
 		userUID = UID;
 	}
 	
+	public static void setUserLati(double __lati) {
+		_lati = __lati;
+	}
+	
+	public static void setUserLong(double __long) {
+		_long = __long;
+	}
+	
 	public static String getUserName() {
 		return userName;
 	}
@@ -257,11 +268,11 @@ public class Network {
 	}
 	
 	public static double getUserLati() {
-		return 37.280122;
+		return _lati;
 	}
 	
 	public static double getUserLong() {
-		return 127.91001;
+		return _long;
 	}
 
 	

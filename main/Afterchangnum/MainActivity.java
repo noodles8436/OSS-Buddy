@@ -43,25 +43,25 @@ public class MainActivity extends AppCompatActivity {
              @Override
              public void onDoubleClick() {
                  Intent intent = new Intent(this,//에약중이라는 걸 띄우는 레이아웃.class);
-                  Network.reserveBus(busname.getText());//버스 노선번호 가져오기
+                  Network.reserveBus(busname.getText().toString());//버스 노선번호 가져오기
                  startActivity(intent);
              }
 
              @Override
              public void onSingleClick() {
-                 tts.speak(String.valueOf(busname.getText()+"이 맞으십니까? 맞다면 이 부분을 더블클릭해주세요"), TextToSpeech.QUEUE_FLUSH,null);
+                 tts.speak(busname.getText().toString()+"이 맞으십니까? 맞다면 이 부분을 더블클릭해주세요", TextToSpeech.QUEUE_FLUSH,null);
              }
          });
          nbutton.setOnClickListener(new DoubleClickListener() {
              @Override
              public void onDoubleClick() {
-                 Intent intent = new Intent(this,//버스 예약버튼 띄우는 레이아웃.class);
+                 //Intent intent = new Intent(this,//버스 예약버튼 띄우는 레이아웃.class);
                  startActivity(intent);
              }
 
              @Override
              public void onSingleClick() {
-                 tts.speak(String.valueOf(busname.getText()+"이 아니십니까? 예약하고자 하는 버스가 아니라면 이 부분을 더블클릭해주세요"), TextToSpeech.QUEUE_FLUSH,null);
+                 tts.speak(busname.getText().toString()+"이 아니십니까? 예약하고자 하는 버스가 아니라면 이 부분을 더블클릭해주세요", TextToSpeech.QUEUE_FLUSH,null);
              }
          });
     }

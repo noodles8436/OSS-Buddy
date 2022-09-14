@@ -34,7 +34,7 @@ def createTable() -> None:
 
     if flag == 0:
         cur.execute("CREATE TABLE usertable("
-                    "phone char(12), name char(3), mac char(17)"
+                    "phone char(12), name char(3), mac char(28)"
                     ")")
         conn.commit()
 
@@ -53,7 +53,7 @@ def createTable() -> None:
 
     if flag == 0:
         cur.execute("CREATE TABLE busdrivertable("
-                    "vehicleno char(12), name char(3), mac char(17)"
+                    "vehicleno char(12), name char(10), mac char(28)"
                     ")")
         conn.commit()
 
@@ -196,8 +196,10 @@ class Database:
         """
 
         try:
+
             sql = "select EXISTS (select * from usertable where phone = %s AND name = %s " \
                   "AND mac = %s limit 1) as success"
+
             self.cur.execute(sql, (phone_num, name, mac_add))
             self.conn.commit()
             result = self.cur.fetchone()
@@ -299,8 +301,10 @@ class Database:
         """
 
         try:
+
             sql = "select EXISTS (select * from busdrivertable where vehicleno = %s AND name = %s " \
                   "AND mac = %s limit 1) as success"
+
             self.cur.execute(sql, (vehicleno,  name, mac_add))
             self.conn.commit()
             result = self.cur.fetchone()
@@ -375,7 +379,7 @@ class Database:
 
 
 if __name__ == "__main__":
-    pass
+    createTable()
     #createTable()
     #db = Database()
 

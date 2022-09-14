@@ -123,7 +123,11 @@ class BusManager:
         routeId = self.getBusRouteIdFromNo(routeNo=routeNo)
         if routeId is None or cityCode is None:
             return None
+
         busThrghSttnList = self.BusTracker.getBusThrghSttnList(cityCode=cityCode, routeId=routeId)
+
+        if busThrghSttnList is None:
+            return None
 
         for _nodeOrd in busThrghSttnList['nodeDict'].keys():
             if busThrghSttnList['nodeDict'][_nodeOrd]['nodeid'] == nodeId:
@@ -134,6 +138,9 @@ class BusManager:
             return None
 
         getAllBusinRoute = self.BusTracker.getAllBusinRoute(cityCode=cityCode, routeId=routeId)['busDict']
+
+        if getAllBusinRoute is None:
+            return None
 
         nodeArrivalCount = -1
         busitemKey = None
@@ -168,9 +175,12 @@ class BusManager:
         result = dict()
         isExist = False
         for routeNo in routeNoList:
-            result[routeNo] = self.getSpecificBusFastArrival(routeNo=routeNo, limitFastNode=limitFastNode)
-            if result[routeNo] is not None:
+            _busArrival = self.getSpecificBusFastArrival(routeNo=routeNo, limitFastNode=limitFastNode)
+            print('A')
+            if _busArrival is not None:
+                result[routeNo] = _busArrival
                 isExist = True
+            print('B')
 
         return result, isExist
 

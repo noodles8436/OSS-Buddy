@@ -159,7 +159,7 @@ class RaspMain:
                         print('[Rasp INFO] Send Request To Server', _sendMsg)
 
                         # ONLY TEST
-                        _sendMsg = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "01" + p.TASK_SPLIT + "30:3:강원71자1529"
+                        # _sendMsg = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "01" + p.TASK_SPLIT + "30:3:강원71자1529"
 
                         writer.write(_sendMsg.encode())
                         await writer.drain()

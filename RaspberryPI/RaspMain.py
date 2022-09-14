@@ -3,7 +3,7 @@ import socket
 import threading
 import time
 
-import PROTOCOL as p
+import Server.PROTOCOL as p
 import BusManager
 import Detector
 
@@ -21,11 +21,17 @@ class busDetectorThread(threading.Thread):
         busList = self.busManager.getBusRouteNoList()
         mostLeft = -1
         routeNo = None
-        for (_text, _prob, _xpos) in _pred:
-            if _text in busList:
-                if mostLeft == -1 or mostLeft > _xpos:
-                    mostLeft = _xpos
-                    routeNo = _text
+        for _predBus in _pred:
+            print(_predBus)
+            for textData in _predBus:
+                print(textData)
+                _text = textData[0]
+                _prob = textData[1]
+                _xpos = textData[2]
+                if _text in busList:
+                    if mostLeft == -1 or mostLeft > _xpos:
+                        mostLeft = _xpos
+                        routeNo = _text
 
         return routeNo
 
@@ -61,6 +67,7 @@ class busDetectorThread(threading.Thread):
                     _pred = self.Detector.detect()
 
                     if _pred is not None:
+                        print("There is 1 Over Bus")
                         routeNo = self.bus_number_filter(_pred=_pred)
                     else:
                         routeNo = None
@@ -124,8 +131,6 @@ class RaspMain:
                 recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
                 msg: str = recv.decode()
 
-                print('in login RASP INFO : ', msg)
-
                 if msg != p.RASP_INFO_LOGIN_SUCCESS:
                     await writer.drain()
                     writer.close()
@@ -139,9 +144,9 @@ class RaspMain:
                 while True:
                     recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
                     msg: list[str] = recv.decode().split(p.TASK_SPLIT)
-                    print('Server Requested : ', msg)
 
                     if msg[0] == p.RASP_REQ_ALL_BUS_ARR:
+                        print('[Rasp INFO] Server Requested : RASP_REQ_ALL_BUS_ARR')
                         _busDict, isExist = self.busManager.getAllBusFastArrival()
 
                         if isExist is False:
@@ -151,11 +156,16 @@ class RaspMain:
                             for _routeNo in _busDict.keys():
                                 _sendMsg += p.TASK_SPLIT + _routeNo + ":" + str(_busDict[_routeNo][0]) \
                                             + ":" + str(_busDict[_routeNo][1])
-                        print('send to server', _sendMsg)
+                        print('[Rasp INFO] Send Request To Server', _sendMsg)
+
+                        # ONLY TEST
+                        _sendMsg = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "01" + p.TASK_SPLIT + "30:3:강원71자1529"
+
                         writer.write(_sendMsg.encode())
                         await writer.drain()
 
                     elif msg[0] == p.RASP_CHECK_BUS:
+                        print('[Rasp INFO] Server Requested : RASP_CHECK_BUS')
                         _sendMsg: str = ""
                         if len(msg) == 2:
                             _routeNo = msg[1]
@@ -165,12 +175,12 @@ class RaspMain:
                                 _sendMsg = p.RASP_CHECK_BUS_IMPOSSIBLE
                         else:
                             _sendMsg = p.RASP_CHECK_BUS_IMPOSSIBLE
-
+                        print('[Rasp INFO] Send Request To Server', _sendMsg)
                         writer.write(_sendMsg.encode())
                         await writer.drain()
 
                     elif msg[0] == p.RASP_CHECK_ARRIVAL:
-
+                        print('[Rasp INFO] Server Requested : RASP_CHECK_ARRIVAL')
                         _sendMsg: str = ""
 
                         if len(msg) == 2:
@@ -181,12 +191,14 @@ class RaspMain:
                         else:
                             _sendMsg = p.RASP_CHECK_ARRIVAL + p.TASK_SPLIT + "-1" + p.TASK_SPLIT + "-1"
 
+                        print('[Rasp INFO] Send Request To Server', _sendMsg)
                         writer.write(_sendMsg.encode())
                         await writer.drain()
 
                     elif msg[0] == p.RASP_GET_NODE_NM:
+                        print('[Rasp INFO] Server Requested : RASP_GET_NODE_NM')
                         _sendMsg: str = p.RASP_GET_NODE_NM + p.TASK_SPLIT + self.busManager.getNodeNm()
-                        print(_sendMsg)
+                        print('[Rasp INFO] Send Request To Server', _sendMsg)
                         writer.write(_sendMsg.encode())
                         await writer.drain()
 

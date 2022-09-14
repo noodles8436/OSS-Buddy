@@ -1,6 +1,4 @@
 import asyncio
-import traceback
-
 import UserManager
 import PROTOCOL as p
 
@@ -77,6 +75,7 @@ class Server:
                 msg_result = self.userMgr.busDriverLogin(vehicleNo=msg[1], name=msg[2], mac_add=msg[3])
             else:
                 msg_result = p.BUSDRIVER_LOGIN_FAIL
+            print(msg_result)
             writer.write(msg_result.encode())
 
             if msg_result == p.BUSDRIVER_LOGIN_SUCCESS:
@@ -155,6 +154,8 @@ class Server:
                         writer.write(msg_result.encode())
                         await writer.drain()
 
+                        print('USER BUS RESERVATION CONFIRM = ', msg_result)
+
                         if msg_result == p.USER_BUS_RESERVATION_CONFIRM_SUCCESS:
                             while True:
                                 try:
@@ -212,6 +213,7 @@ class Server:
                 msg = data.decode().split(p.TASK_SPLIT)
                 lati = float(msg[1])
                 long = float(msg[2])
+                print(lati, long)
                 near_busStop = self.userMgr.searchNearBusStation(user_lati=lati, user_long=long)
                 if near_busStop is None:
                     self.userMgr.removeUserLocation(user_mac=userMac)
@@ -274,11 +276,11 @@ class Server:
                 data = await reader.read(p.SERVER_PACKET_SIZE)
                 msg = data.decode().split(p.TASK_SPLIT)
 
-                print('detector received : ', msg)
+                print('PRED : ', msg)
 
                 if msg[0] == p.RASP_DETECTOR_BUS_CATCH:
-                    if len(msg) == 2:
-                        routeNo = msg[1]
+                    if len(msg) == 3:
+                        routeNo = msg[2]
                         self.userMgr.setBusComing(node_id=nodeId, routeNo=routeNo)
 
                 elif msg[0] == p.RASP_DETECTOR_BUS_NONE:
@@ -294,11 +296,10 @@ class Server:
 
     async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str,
                                routeNo: str, node_left_alarm=3):
+        print("LOGIN!")
         try:
             while True:
-
                 self.userMgr.refreshBusDriverPoints(vehicleNo=vehlcleNo, routeNo=routeNo)
-
                 reserve: list[int, str, str] or None = \
                     self.userMgr.getBusDriverStopPoint(vehicleNo=vehlcleNo, routeNo=routeNo)
 
@@ -316,14 +317,21 @@ class Server:
 
                         if _node_left <= 1:
                             self.userMgr.removeBusDriverStackNode(vehicleNo=vehlcleNo, nodeId=_node_id)
+                else:
+                    msg_result = p.BUSDRIVER_NODE_NONE + p.TASK_SPLIT
+
+                    writer.write(msg_result.encode())
+                    await writer.drain()
 
                 await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
 
         except ConnectionError or ConnectionResetError:
             self.userMgr.busDriverLogOut(vehicleNo=vehlcleNo)
+            print("ERROR")
             return
 
         except Exception:
+            print("ERROR")
             await writer.drain()
             writer.close()
             await writer.wait_closed()
@@ -353,12 +361,9 @@ class Server:
 
     def busReservation(self, userMac: str, routeNo: str) -> str:
         nodeId = self.userMgr.getUserLocation(mac_add=userMac)
-        print("User Location : ", nodeId)
         if nodeId is None:
             return p.USER_BUS_RESERVATION_CONFIRM_FAIL
-        print("AAAAAAAAAA START")
         result: bool = self.userMgr.setUserReserveBus(user_mac=userMac, node_id=nodeId, routeNo=routeNo)
-        print('Reservation : ', result)
         if result:
             return p.USER_BUS_RESERVATION_CONFIRM_SUCCESS
         else:
@@ -369,16 +374,24 @@ class Server:
         return p.USER_BUS_CANCEL_SUCCESS
 
     def isBusAlarmTime(self, userMac: str) -> bool:
-        result = self.userMgr.getUserReserveBus(user_mac=userMac)
+        result: list = self.userMgr.getUserReserveBus(user_mac=userMac)
+        print('UserReserveBus', result)
         if result is None:
             return False
 
-        node_id = result[0], route_id = result[1]
+        print(result[0], result[1])
+
+        node_id = result[0]
+        route_id = result[1]
+
         comingBus = self.userMgr.getBusComing(node_id=node_id)
 
         arrdata: list[int, str] or None = self.userMgr.getBusArrivalData(nodeId=node_id, routeNo=route_id)
         if arrdata is None:
             return False
+
+        print('3정거장 전', arrdata[0])
+        print('comingBus :', comingBus)
 
         if comingBus == route_id and arrdata[0] <= 3:
             return True

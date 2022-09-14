@@ -49,16 +49,19 @@ class UserManager:
         if user_mac in self.userBusStopDict.keys():
             self.userBusStopDict.__delitem__(user_mac)
 
-    def setUserReserveBus(self, user_mac: str, node_id: str, routeNo: str) -> None:
+    def setUserReserveBus(self, user_mac: str, node_id: str, routeNo: str) -> bool:
+        print('Set Reserve Node Id : ', node_id)
         if user_mac not in self.busReserveDict.keys():
             self.busReserveDict[user_mac] = [node_id, routeNo]
-            self.setBusDriver(nodeid=node_id, routeNo=routeNo)
+            return self.setBusDriver(nodeid=node_id, routeNo=routeNo)
+        return False
 
     def removeUserReserveBus(self, user_mac: str):
         if user_mac in self.busReserveDict.keys():
             self.busReserveDict.__delitem__(user_mac)
 
     def getUserReserveBus(self, user_mac: str) -> list[str, str] or None:
+        print(self.busReserveDict)
         if user_mac in self.busReserveDict.keys():
             return self.busReserveDict[user_mac]
         return None
@@ -153,7 +156,6 @@ class UserManager:
 
     def busDriverRegister(self, vehicleNo: str, name: str, mac_add: str) -> str:
         result: bool = self.DB.addBusDriver(vehicleno=vehicleNo, name=name, mac_add=mac_add)
-
         if result is True:
             return p.BUSDRIVER_REGISTER_SUCCESS
         else:
@@ -163,33 +165,38 @@ class UserManager:
         result: int = self.DB.isBusDriverExist(vehicleno=vehicleNo, name=name, mac_add=mac_add)
 
         if result == 1:
+            self.busDriverBusStack[vehicleNo] = list()
             return p.BUSDRIVER_LOGIN_SUCCESS
         elif result == 0:
             return p.BUSDRIVER_LOGIN_FAIL
         elif result == -1:
             return p.BUSDRIVER_LOGIN_ERR
 
-    def setBusDriver(self, nodeid: str, routeNo: str):
+    def setBusDriver(self, nodeid: str, routeNo: str) -> bool:
         busData = self.getBusArrivalData(nodeId=nodeid, routeNo=routeNo)
         vehicleNo = busData[1]
 
+        if vehicleNo not in self.busDriverBusStack.keys():
+            return False
         index = 0
         nodeList: list = self.busDriverBusStack[vehicleNo]
 
         for i in range(len(nodeList)):
             _reserved_node_id = nodeList[i]
             if _reserved_node_id == nodeid:
-                return
+                return True
 
             _other_node_bus_data = self.getBusArrivalData(nodeId=_reserved_node_id, routeNo=routeNo)
             if busData[0] < _other_node_bus_data[0]:
                 break
             index = i + 1
 
-        nodeList.insert(__index=index, __object=nodeid)
-        self.busDriverBusStack[vehicleNo] = nodeList
+        nodeList.insert(index, nodeid)
 
-    def removeBusDriver(self, vehicleNo: str, nodeId: str):
+        self.busDriverBusStack[vehicleNo] = nodeList
+        return True
+
+    def removeBusDriverStackNode(self, vehicleNo: str, nodeId: str):
         nodeList: list[str] = self.busDriverBusStack[vehicleNo]
         if nodeId in nodeList:
             nodeList.remove(__value=nodeId)
@@ -213,3 +220,7 @@ class UserManager:
         for nodeId in self.busDriverBusStack[vehicleNo]:
             if self.getBusReserveUserNum(nodeId=nodeId, routeNo=routeNo) <= 0:
                 self.busDriverBusStack[vehicleNo].remove(nodeId)
+
+    def busDriverLogOut(self, vehicleNo: str):
+        if vehicleNo in self.busDriverBusStack:
+            del self.busDriverBusStack[vehicleNo]

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FEEBB6"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    tools:context=".LoginActivity">
+
+    <Button
+        android:id="@+id/reservation"
+        android:layout_width="match_parent"
+        android:layout_height="768dp"
+        android:layout_weight="1"
+        android:background="#FEEBB6"
+        android:text="버스 예약하기"
+        android:textColor="#ED83A2"
+        android:textSize="44sp"
+        android:textStyle="bold"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/txtResult"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="경도 : \n위도 : "
+        android:textColor="#000000"
+        android:textSize="34sp"
+        android:visibility="invisible"
+        tools:ignore="MissingConstraints" />
+
+</LinearLayout>

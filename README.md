@@ -20,33 +20,40 @@
    * 서버에 실시간으로 버스에 접근하는 버스 정보를 전달합니다.
    
 3. Android :   
-   * 안드로이드 기능
-   * 안드로이드 기능
-   * 안드로이드 기능
+   * 회원가입 정보를 서버로 전달합니다.
+   * 유저는 서버에 유저의 위치 정보를 전달합니다.
+   * 유저는 서버로부터 버스정류장 정보를 얻습니다.
+   * 유저는 버스 예약할 버스 번호를 서버에 전달합니다.
+   * 유저는 서버로부터 예약한 버스 번호와 도착유무 정보를 얻습니다.
+   * 버스기사 유저는 서버로부터 예약한 사람이 있는 버스정류장과 남은 정거장 수를 얻습니다.
    
 
 시각장애인 전용 앱
 -----------------------
 
  1. ### 회원가입
-    Enter the following command to open Image Detection Server   
-    :: CAUTION :: ***wait until "Socket Opened" Message printed***
+    1. 회원가입 버튼을 누른다.
+    2. 회원가입 정보를 입력하고 회원가입을 한다.
 
     
  2. ### 로그인
-    Open ***new Conda Prompt in Project Folder ( activated `<env-name>` )***
-    Follow below command **TO OPEN CLIENT PROGRAM**   
-    :: CAUTION :: ***Client IP & PORT MUST BE THE SAME AS Server IP & PORT***
+    1. 회원가입한 정보를 입력하고 로그인 한다.
 
    
-3. ### 버스 목록 조회 및 예약
-   1. At the bottom right of the program screen, find the area you want and click on the area setting button.
-   2. When clicking on the button, wait for the real-time camera image to be displayed in the windo that pops up.
+3. ### 근처 버스 정류장 찾기
+   1. 근처에 있는 버스 정류장 위치를 찾습니다.
 
+4. ### 버스 예약하기
+   1. 버튼 조작을 통해 버스를 예약합니다. (한번 클릭 : 버스 정보 안내, 두번 클릭 : 다른 버스 탐색, 길게 누르기 : 예약하기)
+   2. 길게 누르면 예/아니오 버튼을 통해 한번 더 확인합니다. (두번 클릭 : 예약 또는 예약 취소)
 
-4. ### 버스 예약 취소
-   1. Change the several values that exist in the lower left to the desired values. 
-   2. Press the "Change Settings" button.   
+5. ### 버스 정보 확인
+   1. 화면에 예약한 버스 정보와 얼마나 나왔는지 알려줍니다.
+   2. 버스가 2정거장 이하로 남았을 때, 진동을 통해 준비해야함을 알립니다.
+   3. 버스가 버스 정류장에 도착하였다면, 진동을 통해서 버스에 탑승해야함을 알립니다.
+   
+6. ### 버스 예약 취소
+   1. 버튼을 더블 클릭하여 버스 예약을 취소합니다.
 
 버스기사 전용 앱
 -----------------------
@@ -57,30 +64,13 @@
 
     
  2. ### 로그인
-    1. 자신이 운행하는 버스 번호와 차량 번호를 입력하고 로그인한다.
+    1. 자신이 운행하는 버스 번호와 차량 번호를 입력하고 로그인한다.   
 
    
 3. ### 버스 예약 정보 확인
-   1. 자신이 운행하는 버스에 대한 예약이 진행되었을 경우, 화면에 예약자의 정류장 위치와 남은 정류장 수가 나온다.
-   2. 이를 확인하여 해당 버스 정류장에 정차하여 시각장애인의 버스 탑승을 돕는다.
+   1. 자신이 운행하는 버스에 대한 예약이 진행되었을 경우, 화면에 예약자의 정류장 위치와 남은 정류장 수가 나온다.   
+   2. 이를 확인하여 해당 버스 정류장에 정차하여 시각장애인의 버스 탑승을 돕는다.   
 
-개발환경
-----------------------
-    OS  : Windows 10 Education 64 Bit (10.0, Build 19042)
-    CPU : Intel(R) Core(TM) i5-4570 CPU @ 3.20GHz (4 CPUs), ~3.2GHz
-    RAM : DDR3 16GB
-    GPU : NVIDIA GeForce GTX 1050 Ti 4GB
-
-FAQ
-----------------------
-  - Q: 예상 질문   
-  A: 예상 답변
-
-Library License
-----------------------
-```
-라이브러리 리스트
-```
 
 How to Conribute
 ----------------------

@@ -72,11 +72,13 @@
    2. 이를 확인하여 해당 버스 정류장에 정차하여 시각장애인의 버스 탑승을 돕는다.   
 
 
-How to Conribute
+Contribute 방법
 ----------------------
-Check out the ['HOW TO CONTRIBUTE'](https://github.com/noodles8436/THE-CROSS/wiki/How-To-Contribute) item on the Github Wiki Page.   
+Check out the ['HOW TO CONTRIBUTE'](https://github.com/noodles8436/OSS-Buddy/wiki) item on the Github Wiki Page.   
 
 Contributors
 ----------------------
-***Thanks everyone who helped me with this project.***
-- Advice : Song Youngwoo   
+***본 프로젝트에 도움을 주신 분들께 감사드립니다.***
+- 프로젝트 조언 : 연세대학교 미래캠퍼스 소프트웨어학부 고요한 교수님
+- 프로젝트 조언 : 연세대학교 미래캠퍼스 소프트웨어학부 홍정희 교수님
+- 통신 관련 조언 : 연세대학교 미래캠퍼스 소프트웨어학부 21학번 최성하 학우

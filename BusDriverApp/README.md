@@ -36,3 +36,12 @@ Android :
    1. 자신이 운행하는 버스에 대한 예약이 진행되었을 경우, 화면에 예약자의 정류장 위치와 남은 정류장 수가 나온다.   
    2. 이를 확인하여 해당 버스 정류장에 정차하여 시각장애인의 버스 탑승을 돕는다.   
 
+클래스 설명
+-----------------------
+1. ### MainActivity
+2. ### JoinActivity
+3. ### BD_loginActivity
+4. ### FileManager
+5. ### NetworkBus
+6. ### BusReserve
+7. ### PROTOCOL_BUS

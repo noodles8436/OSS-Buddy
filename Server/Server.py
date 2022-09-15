@@ -253,7 +253,7 @@ class Server:
 
                 for i in range(2, cnt + 2):
                     _busData = msg[i].split(":")
-                    print(_busData)
+                    #print(_busData)
                     result[_busData[0]] = [int(_busData[1]), _busData[2]]
 
                 self.userMgr.setBusArrivalData(nodeId=nodeId, arrivalDict=result)
@@ -276,7 +276,7 @@ class Server:
                 data = await reader.read(p.SERVER_PACKET_SIZE)
                 msg = data.decode().split(p.TASK_SPLIT)
 
-                print('PRED : ', msg)
+                print('Coming Bus : ', msg)
 
                 if msg[0] == p.RASP_DETECTOR_BUS_CATCH:
                     if len(msg) == 3:
@@ -296,7 +296,6 @@ class Server:
 
     async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str,
                                routeNo: str, node_left_alarm=3):
-        print("LOGIN!")
         try:
             while True:
                 self.userMgr.refreshBusDriverPoints(vehicleNo=vehlcleNo, routeNo=routeNo)
@@ -375,7 +374,7 @@ class Server:
 
     def isBusAlarmTime(self, userMac: str) -> bool:
         result: list = self.userMgr.getUserReserveBus(user_mac=userMac)
-        print('UserReserveBus', result)
+        #print('UserReserveBus', result)
         if result is None:
             return False
 
@@ -390,8 +389,8 @@ class Server:
         if arrdata is None:
             return False
 
-        print('3정거장 전', arrdata[0])
-        print('comingBus :', comingBus)
+        #print('3정거장 전', arrdata[0])
+        #print('comingBus :', comingBus)
 
         if comingBus == route_id and arrdata[0] <= 3:
             return True

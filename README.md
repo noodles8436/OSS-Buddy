@@ -74,7 +74,7 @@
 
 Contribute 방법
 ----------------------
-Check out the ['HOW TO CONTRIBUTE'](https://github.com/noodles8436/OSS-Buddy/wiki) item on the Github Wiki Page.   
+Contribute 방법은 본 Project의 ['Github WIKI'](https://github.com/noodles8436/OSS-Buddy/wiki) 를 참고해주세요.
 
 Contributors
 ----------------------

@@ -147,6 +147,7 @@ class RaspMain:
 
                     if msg[0] == p.RASP_REQ_ALL_BUS_ARR:
                         print('[Rasp INFO] Server Requested : RASP_REQ_ALL_BUS_ARR')
+
                         _busDict, isExist = self.busManager.getAllBusFastArrival()
 
                         if isExist is False:
@@ -159,7 +160,7 @@ class RaspMain:
                         print('[Rasp INFO] Send Request To Server', _sendMsg)
 
                         # ONLY TEST
-                        _sendMsg = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "01" + p.TASK_SPLIT + "30:3:강원71자1529"
+                        #_sendMsg = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "01" + p.TASK_SPLIT + "30:3:강원71자1529"
 
                         writer.write(_sendMsg.encode())
                         await writer.drain()

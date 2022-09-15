@@ -1,14 +1,10 @@
 package com.djy.budy;
+
 import static android.speech.tts.TextToSpeech.ERROR;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
+import android.content.Intent;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
@@ -17,21 +13,30 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
+//메인 페이지 - 위치 불러오는 부분
 public class LoginActivity extends AppCompatActivity {
     private TextToSpeech tts;
     private TextView txtResult;
+    static String identify=null;
+    String k=null;
+    String next_route_nu=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //따로 빼서 쓸 버스 예약 버튼
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main); //xml 연결된 파일
         Button resbutton = (Button) findViewById(R.id.reservation);
 
+        final int[] number_of_clicks = {0};
+        final boolean[] thread_started = {false};
+        final int DELAY_BETWEEN_CLICKS_IN_MILLISECONDS = 250;
+
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -41,66 +46,79 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Button button1 = (Button) findViewById(R.id.button1);
-        txtResult = (TextView) findViewById(R.id.txtResult);
 
+        //위치
         final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-       /*
-        resbutton.setOnClickListener(new View.OnClickListener() {
+        //double[] loca = {-2, -2};
+        //loca = GPS();
+        //txtResult.setText(loca[0] + "\n" + loca[1]);
+
+        resbutton.setOnClickListener(new DoubleClickListener() {
             @Override
-            public void onClick(View view) {
-                if (Build.VERSION.SDK_INT >= 23 &&
-                        ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                    vibrator.vibrate(500);
-                    tts.speak("허용을 눌러 권한 설정을 해주세요.",TextToSpeech.QUEUE_FLUSH,null);
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.RECORD_AUDIO},
-                            0);
-                }
+            public void onDoubleClick() {
+                k = changnum().getRouteNo();
+                identify = k;
+                resbutton.setText(String.valueOf(k));
+                tts.speak(String.valueOf(resbutton.getText()), TextToSpeech.QUEUE_FLUSH,null);
+
+            }
+
+            @Override
+            public void onSingleClick() {
+                tts.speak(String.valueOf(resbutton.getText()), TextToSpeech.QUEUE_FLUSH,null);
+
             }
         });
 
-        */
-        button1.setOnClickListener(new View.OnClickListener() {
-            @SuppressLint({"MissingPermission", "SetTextI18n"})
-            @Override
-            public void onClick(View v) {
-                if (Build.VERSION.SDK_INT >= 23 &&
-                        ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    vibrator.vibrate(500);
-                    tts.speak("허용을 눌러 권한 설정을 해주세요.",TextToSpeech.QUEUE_FLUSH,null);
-                    ActivityCompat.requestPermissions(LoginActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                            0);
-                } else {
-                    Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-                    double longitude = location.getLongitude();
-                    double latitude = location.getLatitude();
-
-
-                    txtResult.setText(
-                            "경도 : " + longitude + "\n" +
-                                    "위도 : " + latitude + "\n"
-                    );
-
-
+        resbutton.setOnLongClickListener(new View.OnLongClickListener() {
+                //길게 클릭할 때
+                @Override
+                public boolean onLongClick(View view) {
+                    if (identify.equals(null)) {
+                        tts.speak("버스를 찾으시려면 더블클릭으로 넘겨주세요", TextToSpeech.QUEUE_FLUSH, null);
+                    } else {
+                        tts.speak(identify + "버스로 예약하시겠습니까?", TextToSpeech.QUEUE_FLUSH, null);
+                        Intent intent = new Intent(LoginActivity.this, ReservationActivity.class);
+                        startActivity(intent);
+                    }
+                    return false;
                 }
-            }
-        });
+            });
+
 
     }
 
-    final LocationListener gpsLocationListener = new LocationListener() {
-        public void onLocationChanged(Location location) {
-
-            double longitude = location.getLongitude();
-            double latitude = location.getLatitude();
-
-            txtResult.setText(
-                    "경도 : " + longitude + "\n" +
-                            "위도 : " + latitude + "\n");
-
+    public BusArrival changnum() {
+        int index =0;
+        int nextint=0;
+        ArrayList<BusArrival> buslist=Network.getBusList();
+        if(buslist.size()!=0) {
+            if (next_route_nu == null) {
+                if (buslist.size() > 1)
+                    next_route_nu = buslist.get(1).getRouteNo();
+                return buslist.get(0);
+            } else {
+                if (buslist.size() > 1) {
+                    for (int i = 0; i < buslist.size(); i++) {
+                        if (next_route_nu.equals(buslist.get(i))) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    nextint = index + 1;
+                    if (nextint > buslist.size())
+                        nextint = 0;
+                }
+                next_route_nu = buslist.get(nextint).getRouteNo();
+                return buslist.get(index);
+            }
         }
-    };
+        else
+            return null;
+    }
+
+
+
+
+
 }

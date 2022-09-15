@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ED83A2"
+    tools:context=".ReservationActivity">
+
+    <Button
+        android:id="@+id/yesbutton"
+        android:layout_width="200dp"
+        android:layout_height="730dp"
+        android:layout_weight="1"
+        android:background="@drawable/layer_res"
+        android:text="예"
+        android:textColor="#131313"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/nobutton"
+        android:layout_width="200dp"
+        android:layout_height="730dp"
+        android:layout_weight="1"
+        android:background="@drawable/layer_res"
+        android:text="아니오"
+        android:textColor="#131313"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        tools:ignore="MissingConstraints" />
+
+</LinearLayout>

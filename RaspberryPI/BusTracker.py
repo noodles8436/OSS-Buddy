@@ -127,8 +127,7 @@ class BusTracker:
 
         xml = requests.get(URL_getRouteAcctoBusLcList + queryParams).text
         root = bs(xml, features="xml")
-
-        print(root)
+        #print(root)
 
         resultCode = root.find("resultCode").get_text()
         resultMsg = root.find("resultMsg").get_text()

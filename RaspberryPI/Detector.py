@@ -8,7 +8,7 @@ class Detector:
         self.model = Model.Model()
         self.Camera = cv2.VideoCapture(0)
 
-    def detect(self) -> list[list[str, float]] or None:
+    def detect(self) -> list[list[str, float, int]] or None:
         ret, frame = self.Camera.read()
 
         if not ret:

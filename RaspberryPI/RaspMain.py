@@ -3,7 +3,7 @@ import socket
 import threading
 import time
 
-import Server.PROTOCOL as p
+import PROTOCOL as p
 import BusManager
 import Detector
 
@@ -147,6 +147,7 @@ class RaspMain:
 
                     if msg[0] == p.RASP_REQ_ALL_BUS_ARR:
                         print('[Rasp INFO] Server Requested : RASP_REQ_ALL_BUS_ARR')
+
                         _busDict, isExist = self.busManager.getAllBusFastArrival()
 
                         if isExist is False:

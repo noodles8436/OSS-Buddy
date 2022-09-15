@@ -124,7 +124,10 @@ class BusManager:
         if routeId is None or cityCode is None:
             return None
 
-        busThrghSttnList = self.BusTracker.getBusThrghSttnList(cityCode=cityCode, routeId=routeId)
+        try:
+            busThrghSttnList = self.BusTracker.getBusThrghSttnList(cityCode=cityCode, routeId=routeId)
+        except Exception:
+            return None
 
         if busThrghSttnList is None:
             return None
@@ -176,11 +179,9 @@ class BusManager:
         isExist = False
         for routeNo in routeNoList:
             _busArrival = self.getSpecificBusFastArrival(routeNo=routeNo, limitFastNode=limitFastNode)
-            print('A')
             if _busArrival is not None:
                 result[routeNo] = _busArrival
                 isExist = True
-            print('B')
 
         return result, isExist
 

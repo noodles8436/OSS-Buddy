@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "968935037691",
+    "project_id": "budy-fd8b0",
+    "storage_bucket": "budy-fd8b0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:968935037691:android:34c3ab627c0272caf7ae5e",
+        "android_client_info": {
+          "package_name": "com.djy.budy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "968935037691-rjulc3o56atmoia01u4f70r8tah9j86f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.djy.budy",
+            "certificate_hash": "2178d9c1d6534937b01f9e39303e3e1c58b19080"
+          }
+        },
+        {
+          "client_id": "968935037691-78qp623sii9sftsh6ns18dimgffov5s0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7wnOdgqSHNV8Hxplqfx6NzqdccVslrm8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "968935037691-78qp623sii9sftsh6ns18dimgffov5s0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

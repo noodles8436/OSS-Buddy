@@ -1,5 +1,5 @@
 
-[![Python 3.8](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3812/)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3812/)
 # OSS BUDDY - 시각장애인을 위한 스마트 버스 탑승 시스템 
 - 본 프로젝트는 2022 OSS 개발자 대회 제출용 Project 입니다.
 

@@ -77,6 +77,7 @@ class Server:
                 msg_result = p.BUSDRIVER_LOGIN_FAIL
             print(msg_result)
             writer.write(msg_result.encode())
+            await writer.drain()
 
             if msg_result == p.BUSDRIVER_LOGIN_SUCCESS:
                 await self.BusDriverHandler(reader=reader, writer=writer, vehlcleNo=msg[1], routeNo=msg[4])

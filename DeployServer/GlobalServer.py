@@ -2,6 +2,7 @@ import asyncio
 import threading
 import PROTOCOL as p
 from queue import Queue
+from Assignment import Assignment
 
 
 class GlobalServer:
@@ -10,9 +11,12 @@ class GlobalServer:
         self.ip = ip
         self.port = port
         self.Servers = list()
+
         self.RequestQueue = Queue()
-        self.assignor = threading.Thread(target=self.assignManager)
+        self.assignerStatus = False
+        self.assigner = threading.Thread(target=self.assignManager)
         self.assignIndex = 0
+        self.assignDone = dict()
 
     async def run_server(self) -> None:
         self.globalServer = await asyncio.start_server(self.loginHandler, host=self.ip, port=self.port)
@@ -56,20 +60,27 @@ class GlobalServer:
 
     # ==========================[ AssignManager ]============================
     def assignManager(self):
-        pass
+        while self.assignerStatus:
+            pass
 
     def startManager(self):
-        pass
+        if self.assignerStatus is True:
+            self.stopManager()
+        self.assignerStatus = True
+        self.assigner.start()
 
     def stopManager(self):
-        pass
+        self.assignerStatus = False
+
+    def isManagerActive(self):
+        return self.assignerStatus
 
     # ==============================[ QUEUE ]=================================
 
-    def addQueue(self):
+    def addQueue(self, assign:Assignment):
         pass
 
-    def delQueue(self):
+    def delQueue(self, assign:Assignment):
         pass
 
     # ============================[ ASSIGNMENT ]==============================

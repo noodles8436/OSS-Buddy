@@ -79,7 +79,7 @@ BeautifulSoup4 - MIT License
 OpenCV 4.5.0 이상 - Apache 2 License
 detectionModel - GPL 3.0
 EasyOCR - Apache 2 License
-Pytorch - BSD-3
+Pytorch - BSD-3-Clause
 Android - Apache 2 License
 ```
 

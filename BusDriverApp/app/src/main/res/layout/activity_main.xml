@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="#1B1E21"
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".MainActivity">
@@ -12,34 +12,33 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
-        android:background="#FFFFFF"
+        android:layout_marginBottom="20dp"
+        android:background="#1B1E21"
         android:gravity="center">
 
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="wrap_content"
             android:layout_height="200dp"
-            app:srcCompat="@drawable/logo1" />
+            app:srcCompat="@drawable/logo_2" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="10dp"
         android:gravity="center"
         android:orientation="horizontal">
 
         <TextView
             android:id="@+id/hint"
             android:layout_width="330dp"
-            android:layout_height="70dp"
+            android:layout_height="60dp"
 
             android:background="#FEEBB6"
             android:gravity="center"
             android:text="차량 번호를 입력해주세요."
-            android:textColor="#A52E56"
-            android:textColorHint="#979494"
+            android:textColor="@color/black"
             android:textSize="24sp"
             android:textStyle="bold"
             tools:ignore="HardcodedText,MissingConstraints" />
@@ -68,7 +67,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -76,19 +75,19 @@
             android:id="@+id/test1"
             android:layout_width="330dp"
             android:layout_height="50dp"
-            android:background="@drawable/layer_res"
+            android:background="#FEEBB6"
             android:gravity="center"
-            android:hint="버스번호를 입력해주세요."
-            android:textColor="#221F1F"
-            android:textColorHint="#979494"
-            android:textSize="18sp"
-            tools:ignore="HardcodedText" />
+            android:text="버스 번호를 입력해주세요."
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            tools:ignore="HardcodedText,MissingConstraints" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -109,19 +108,19 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="50dp"
         android:gravity="center"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/checkbox"
-            android:layout_width="350dp"
+            android:layout_width="330dp"
             android:layout_height="50dp"
-            android:background="#ED8DA9"
+            android:background="#FFCD48"
             android:gravity="center"
             android:onClick="btn_Click"
             android:text="확인하기"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/black"
             android:textSize="20sp"
             tools:ignore="TextContrastCheck" />
     </LinearLayout>
@@ -135,14 +134,14 @@
 
         <Button
             android:id="@+id/join"
-            android:layout_width="350dp"
+            android:layout_width="330dp"
             android:layout_height="50dp"
-            android:background="#ED8DA9"
+            android:background="#FFCD48"
             android:gravity="center"
             android:onClick="join_Click"
 
             android:text="회원가입"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/black"
             android:textSize="20sp" />
     </LinearLayout>
 

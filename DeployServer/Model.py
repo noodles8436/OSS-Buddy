@@ -90,8 +90,7 @@ class Model:
 
         self.label_map, _ = AvaLabeledVideoFramePaths.read_label_map('ava_action_list.pbtxt')
 
-    def detectObjects(self, cv_Img, confidence=0.5):
-        inp_img = np.array(cv_Img)
+    def detectObjects(self, inp_img: np.ndarray, confidence=0.5):
         inp_img = torch.Tensor(inp_img)
         inp_img = inp_img.permute(1, 0, 2)
 
@@ -112,13 +111,10 @@ class Model:
                 _pred_Person.append(xyxy)
 
             if result['class'] == YOLO_BUS_LABEL:
-                _pred_Bus.append(self.detectBusNumber(cvImg=cv_Img, xyxy=xyxy))
+                _pred_Bus.append(self.detectBusNumber(cvImg=inp_img, xyxy=xyxy))
 
         _pred_Person = np.array(_pred_Person)
         _pred_Person = torch.FloatTensor(_pred_Person)
-
-        _pred_Bus = np.array(_pred_Bus)
-        _pred_Bus = torch.DoubleTensor(_pred_Bus)
 
         return _pred_Bus, _pred_Person
 
@@ -142,20 +138,17 @@ class Model:
 
         return _data
 
-    def understanding(self, cv_imgs: list, thres=0.5) -> (list, list):
+    def understanding(self, inp_imgs: np.ndarray, thres=0.5) -> (list, list, list):
 
         def getLabel(class_id: int):
             return self.label_map[class_id]
 
-        inp_img = cv_imgs[len(cv_imgs) // 2]
-        print(inp_img.shape)
-
+        inp_img = inp_imgs[len(inp_imgs) // 2]
         _pred_Bus, _pred_Person = self.detectObjects(inp_img)
 
         if len(_pred_Person) == 0:
             return [], [], [], []
 
-        inp_imgs = np.array(cv_imgs)
         inp_imgs = torch.Tensor(inp_imgs)
 
         inp_imgs = inp_imgs.permute(3, 0, 1, 2)
@@ -166,17 +159,14 @@ class Model:
         preds = preds.to('cpu')
         preds = torch.cat([torch.zeros(preds.shape[0], 1), preds], dim=1)
 
-        top_scores, top_classes, top_labels = [], [], []
+        top_classes = []
 
         for pred in preds:
             mask = pred >= thres
-            top_scores.append(pred[mask].tolist())
             top_class = torch.squeeze(torch.nonzero(mask), dim=-1).tolist()
             top_classes.append(top_class)
-            top_label = list(map(getLabel, top_class))
-            top_labels.append(top_label)
 
-        return _pred_Bus, top_scores, top_classes, top_labels
+        return _pred_Bus, _pred_Person, top_classes
 
 
 if __name__ == "__main__":

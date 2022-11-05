@@ -11,6 +11,10 @@ class DeployServer:
         self.model = Model()
         self.host = host
         self.port = port
+        self.start()
+
+    async def start(self):
+        self.serverTask = await asyncio.tasks.create_task(self.run())
 
     async def run(self):
         reader: asyncio.StreamReader
@@ -59,12 +63,31 @@ class DeployServer:
                     msg: bytes = getDumpFromObject(result)
                     writer.write(msg)
                     await writer.drain()
-                    
+
                     print('[Deploy Server] Assigned work was done!\n')
+
+            except (ConnectionError, ConnectionRefusedError,
+                    ConnectionResetError, ConnectionAbortedError) as e:
+                print('[Deploy Server] Error : ', str(e))
+                await asyncio.sleep(1)
 
             except Exception as e:
                 print('[Deploy Server] Error : ', str(e))
+                print('[Deploy Server] Close Connection..Retry to Connect')
+                if writer is not None:
+                    await writer.drain()
+                    writer.close()
+                    await writer.wait_closed()
+                await asyncio.sleep(1)
 
     def predict(self, images: np.ndarray):
         _pred_Bus, top_scores, top_classes, top_labels = self.model.understanding(images)
         return _pred_Bus, top_scores, top_classes, top_labels
+
+
+if __name__ == "__main__":
+    print('        [ OSS Buddy Project ]       '.center(75))
+    print('')
+    host = input("[Deploy Server] 호스트 IP 를 입력하세요 (ex 192.168.0.1) : ")
+    port = int(input("[Deploy Server] 호스트 PORT 를 입력하세요 (ex 8877) : ", ))
+    DeployServer(host=host, port=port)

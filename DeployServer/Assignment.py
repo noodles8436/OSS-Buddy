@@ -2,35 +2,56 @@ import numpy as np
 import pickle
 
 
+def getDumpFromObject(target: object):
+    return pickle.dumps(target)
+
+
+def loadDataFromDump(dumpData: bytes):
+    return pickle.loads(dumpData)
+
+
 class DetectResult:
 
     def __init__(self):
         self.resultDict = dict()
+        self.isComplete = False
 
-    def setResult_ObjDetection(self):
-        pass
+    def setResult_ObjDetection(self, result: list):
+        self.resultDict['ObjDetection'] = result
 
-    def getResult_ObjDetection(self):
-        pass
+    def getResult_ObjDetection(self) -> list or None:
+        if "ObjDetection" in self.resultDict.keys():
+            return self.resultDict['ObjDetection']
+        return None
 
-    def setResult_OCR(self):
-        pass
+    def setResult_OCR(self, result: list):
+        self.resultDict['OCR_BUS'] = result
 
-    def getResult_OCR(self):
-        pass
+    def getResult_OCR(self) -> list or None:
+        if "OCR_BUS" in self.resultDict.keys():
+            return self.resultDict['OCR_BUS']
+        return None
 
-    def setResult_Understanding(self):
-        pass
+    def setResult_Understanding(self, result: list):
+        self.resultDict['Understanding'] = result
 
-    def getResult_Understanding(self):
-        pass
+    def getResult_Understanding(self) -> list or None:
+        if "Understanding" in self.resultDict.keys():
+            return self.resultDict['Understanding']
+        return None
+
+    def setComplete(self):
+        self.isComplete = True
+
+    def getComplete(self):
+        return self.isComplete
 
 
 class Assignment:
 
-    def __init__(self, client_ip: str, image: np.ndarray):
+    def __init__(self, client_ip: str, images: np.ndarray):
         self.client_ip = client_ip
-        self.image = image
+        self.images = images
         self.DetectResult = None
         self.isAssignCompleted_Flag = False
 
@@ -41,11 +62,8 @@ class Assignment:
     def getDetectResult(self) -> DetectResult or None:
         return self.DetectResult
 
-    def getDump_DetectResult(self) -> bytes:
-        return pickle.dumps(self.DetectResult)
-
-    def getDump_Image(self) -> bytes:
-        return pickle.dumps(self.image)
+    def getDump_Images(self) -> bytes:
+        return pickle.dumps(self.images)
 
     def getClient_IP(self) -> str:
         return self.client_ip

@@ -3,19 +3,9 @@ from Assignment import Assignment
 
 class ServerInfo:
 
-    def __init__(self, ip: str):
-        self.ip = ip
-        self.status = False
+    def __init__(self, server_ip: str):
+        self.ip = server_ip
         self.Assignment = None
-
-    def setStatus_Working(self) -> None:
-        self.status = True
-
-    def setStatus_Sleep(self):
-        self.status = False
-
-    def getStatus(self) -> bool:
-        return self.status
 
     def setAssign(self, assignment: Assignment) -> None:
         self.Assignment = assignment
@@ -23,5 +13,13 @@ class ServerInfo:
     def delAssign(self) -> None:
         self.Assignment = None
 
-    def getAssign(self) -> Assignment:
+    def getServer_IP(self) -> str:
+        return self.ip
+
+    def getAssign(self) -> Assignment or None:
         return self.Assignment
+
+    def isAssigned(self) -> bool:
+        if self.getAssign() is not None:
+            return True
+        return False

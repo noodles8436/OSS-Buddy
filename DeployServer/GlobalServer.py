@@ -7,7 +7,7 @@ import numpy as np
 import PROTOCOL as p
 from queue import Queue
 from Assignment import Assignment, DetectResult, getDumpFromObject
-from DeployServer.ServerInfo import ServerInfo
+from ServerInfo import ServerInfo
 from Model import FPS
 
 
@@ -33,9 +33,11 @@ class GlobalServer:
     # ==============================[ Main ]=================================
 
     async def loginHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
-        client_addr = writer.get_extra_info('peernamwre')
+        client_addr = writer.get_extra_info('peername')
         data: bytes = await reader.read(p.SERVER_PACKET_SIZE)
         msg = data.decode().split(p.TASK_SPLIT)
+
+        print(' ACCESS : ', client_addr)
 
         if msg[0] == p.DEPLOY_SERVER_LOGIN:
             msg_result = self.addDeployServer(client_addr)
@@ -44,7 +46,10 @@ class GlobalServer:
             await writer.drain()
 
             if msg_result == p.DEPLOY_SERVER_LOGIN_SUCCESS:
+                print(' Deploy Server login Success!\n')
                 await self.serverHandler(reader=reader, writer=writer)
+
+            print(' Deploy Server login Failed...\n')
 
         elif msg[0] == p.CLIENT_LOGIN:
             msg_result = self.addClient(client_addr)
@@ -297,4 +302,5 @@ if __name__ == "__main__":
     print('')
     ip = input("[Deploy Server] 호스트 IP 를 입력하세요 (ex 192.168.0.1) : ")
     port = int(input("[Deploy Server] 호스트 PORT 를 입력하세요 (ex 8877) : ", ))
-    GlobalServer(ip=ip, port=port)
+    globalServer = GlobalServer(ip=ip, port=port)
+    asyncio.run(globalServer.run_server())

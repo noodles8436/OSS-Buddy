@@ -1,9 +1,14 @@
 import asyncio
 import threading
+
+import cv2
+import numpy as np
+
 import PROTOCOL as p
 from queue import Queue
-from Assignment import Assignment
+from Assignment import Assignment, DetectResult, getDumpFromObject
 from DeployServer.ServerInfo import ServerInfo
+from Model import FPS
 
 
 class GlobalServer:
@@ -12,6 +17,7 @@ class GlobalServer:
         self.ip = ip
         self.port = port
         self.Servers = dict()
+        self.Clients = list()
 
         self.RequestQueue = Queue()
         self.assignerStatus = False
@@ -27,7 +33,7 @@ class GlobalServer:
     # ==============================[ Main ]=================================
 
     async def loginHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
-        client_addr = writer.get_extra_info('peername')
+        client_addr = writer.get_extra_info('peernamwre')
         data: bytes = await reader.read(p.SERVER_PACKET_SIZE)
         msg = data.decode().split(p.TASK_SPLIT)
 
@@ -49,6 +55,15 @@ class GlobalServer:
             if msg_result == p.CLIENT_LOGIN_SUCCESS:
                 await self.clientHandler(reader=reader, writer=writer)
 
+        elif msg[0] == p.CLIENT_RASPBERRY_LOGIN:
+            msg_result = self.addClient(client_addr)
+
+            writer.write(msg_result.encode())
+            await writer.drain()
+
+            if msg_result == p.CLIENT_LOGIN_SUCCESS:
+                await self.clientHandler(reader=reader, writer=writer, isRaspberry=True)
+
         writer.close()
 
     async def serverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
@@ -69,7 +84,7 @@ class GlobalServer:
 
                 # server is Assigned work
                 assignment: Assignment = serverInfo.getAssign()
-                bytes_img: bytes = assignment.getDump_Image()
+                bytes_img: bytes = assignment.getDump_Images()
 
                 writer.write(bytes_img)
                 await writer.drain()
@@ -90,13 +105,75 @@ class GlobalServer:
         writer.close()
         await writer.wait_closed()
 
-    async def clientHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
-        pass
+    async def clientHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter,
+                            isRaspberry=False) -> None:
+        client_addr = writer.get_extra_info('peername')
+
+        while True:
+            try:
+                recv_imgs = list()
+                for i in FPS:
+                    try:
+                        bytes_img: bytes = await asyncio.wait_for(reader.read(p.SERVER_PACKET_SIZE),
+                                                                  p.TIME_OUT)
+                        cv_img: np.ndarray = cv2.imdecode(bytes_img, flags=1)
+                        recv_imgs.append(cv_img)
+
+                    except asyncio.TimeoutError:
+                        pass
+
+                np_imgs: np.ndarray = np.array(recv_imgs)
+                new_assignment = Assignment(client_ip=client_addr, images=np_imgs)
+                self.EnQueue(new_assignment)
+
+                while True:
+                    if self.isClient_AssignComplete(client_ip=client_addr) is True:
+                        break
+
+                completed_assign: Assignment = self.getClient_AssignComplete(client_ip=client_addr)
+
+                if completed_assign is None:
+                    bytes_result: bytes = p.CLIENT_ASSIGN_FAIL
+
+                else:
+                    detectResult: DetectResult = completed_assign.getDetectResult()
+                    if detectResult is None:
+                        bytes_result: bytes = p.CLIENT_ASSIGN_FAIL
+                    else:
+
+                        if detectResult.getComplete():
+                            if isRaspberry:
+                                bytes_result: bytes = getDumpFromObject(detectResult)
+                            else:
+                                bytes_result: bytes = detectResult.toString().encode()
+                        else:
+                            bytes_result: bytes = p.CLIENT_ASSIGN_FAIL
+
+                writer.write(bytes_result)
+                await writer.drain()
+
+            except (ConnectionError, ConnectionResetError, ConnectionAbortedError, ConnectionRefusedError) as e:
+                self.delClient(ip=client_addr)
+                break
 
     # ==========================[ AssignManager ]============================
     def assignManager(self):
         while self.assignerStatus:
-            pass
+            while not self.isQueueEmpty():
+                assignment: Assignment = self.DeQueue()
+                client_ip = assignment.getClient_IP()
+
+                if len(self.Servers.keys()) == 0:
+                    self.assignDone[client_ip] = assignment
+
+                self.assignIndex %= (len(self.Servers.keys()) + 1)
+                serverDictKey: str = list(self.Servers.keys())[self.assignIndex]
+                assignServer: ServerInfo = self.getServerInfo(serverDictKey)
+
+                if assignServer is None:
+                    continue
+
+                assignServer.setAssign(assignment=assignment)
 
     def startManager(self):
         if self.assignerStatus is True:
@@ -121,7 +198,7 @@ class GlobalServer:
     def DeQueue(self) -> Assignment or None:
         if self.isQueueEmpty():
             return None
-        self.RequestQueue.get()
+        return self.RequestQueue.get()
 
     def isQueueEmpty(self):
         return self.RequestQueue.empty()
@@ -172,7 +249,10 @@ class GlobalServer:
     # ==============================[ SERVER ]================================
 
     def addDeployServer(self, ip: str) -> str:
-        pass
+        if self.isServerExist(ip):
+            return p.DEPLOY_SERVER_LOGIN_FAIL
+        self.Servers[ip] = ServerInfo(server_ip=ip)
+        return p.DEPLOY_SERVER_LOGIN_SUCCESS
 
     def delDeployServer(self, server_ip: str) -> None:
         if self.isServerExist(ip=server_ip) is False:
@@ -197,10 +277,24 @@ class GlobalServer:
     # ==============================[ CLIENT ]================================
 
     def addClient(self, ip: str) -> str:
+        if ip in self.Clients:
+            return p.CLIENT_LOGIN_FAIL
+        self.Clients.append(ip)
+        _ = self.getClient_AssignComplete(ip)
         return p.CLIENT_LOGIN_SUCCESS
 
-    def delClient(self, ip: str) -> str:
-        pass
+    def delClient(self, ip: str) -> None:
+        if ip in self.Clients:
+            self.Clients.remove(ip)
+            _ = self.getClient_AssignComplete(ip)
 
     def isClientExist(self, ip: str) -> bool:
-        return False
+        return ip in self.Clients
+
+
+if __name__ == "__main__":
+    print('        [ OSS Buddy Project ]       '.center(75))
+    print('')
+    ip = input("[Deploy Server] 호스트 IP 를 입력하세요 (ex 192.168.0.1) : ")
+    port = int(input("[Deploy Server] 호스트 PORT 를 입력하세요 (ex 8877) : ", ))
+    GlobalServer(ip=ip, port=port)

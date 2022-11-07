@@ -37,7 +37,7 @@ class GlobalServer:
         data: bytes = await reader.read(p.SERVER_PACKET_SIZE)
         msg = data.decode().split(p.TASK_SPLIT)
 
-        print(' ACCESS : ', client_addr)
+        print('ACCESS : ', client_addr)
 
         if msg[0] == p.DEPLOY_SERVER_LOGIN:
             msg_result = self.addDeployServer(client_addr)
@@ -46,10 +46,10 @@ class GlobalServer:
             await writer.drain()
 
             if msg_result == p.DEPLOY_SERVER_LOGIN_SUCCESS:
-                print(' Deploy Server login Success!\n')
+                print('Deploy Server login Success!\n')
                 await self.serverHandler(reader=reader, writer=writer)
 
-            print(' Deploy Server login Failed...\n')
+            print('Deploy Server login Failed...\n')
 
         elif msg[0] == p.CLIENT_LOGIN:
             msg_result = self.addClient(client_addr)
@@ -58,7 +58,10 @@ class GlobalServer:
             await writer.drain()
 
             if msg_result == p.CLIENT_LOGIN_SUCCESS:
+                print('App Client login Success!\n')
                 await self.clientHandler(reader=reader, writer=writer)
+
+            print('App Client login Failed...')
 
         elif msg[0] == p.CLIENT_RASPBERRY_LOGIN:
             msg_result = self.addClient(client_addr)
@@ -67,7 +70,10 @@ class GlobalServer:
             await writer.drain()
 
             if msg_result == p.CLIENT_LOGIN_SUCCESS:
+                print('Raspberry PI login Success!')
                 await self.clientHandler(reader=reader, writer=writer, isRaspberry=True)
+
+            print('Raspberry PI login Failed...')
 
         writer.close()
 
@@ -101,14 +107,14 @@ class GlobalServer:
 
         except (ConnectionError, ConnectionResetError, ConnectionAbortedError, ConnectionRefusedError):
             self.delDeployServer(server_ip=server_addr)
+            return
+
+        except Exception:
+            self.delDeployServer(server_ip=server_addr)
             await writer.drain()
             writer.close()
             await writer.wait_closed()
-
-        self.delDeployServer(server_ip=server_addr)
-        await writer.drain()
-        writer.close()
-        await writer.wait_closed()
+            return
 
     async def clientHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter,
                             isRaspberry=False) -> None:

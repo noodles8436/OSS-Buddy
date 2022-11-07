@@ -11,7 +11,6 @@ class DeployServer:
         self.model = Model()
         self.host = host
         self.port = port
-        self.start()
 
     async def start(self):
         self.serverTask = await asyncio.tasks.create_task(self.run())
@@ -38,7 +37,7 @@ class DeployServer:
                     await writer.drain()
                     writer.close()
                     await writer.wait_closed()
-                    print('[Deploy Server] Failed to Connect to Global Server')
+                    print('[Deploy Server] Failed to Login to Global Server\n\n')
                     await asyncio.sleep(1)
                     continue
                 print('[Deploy Server] Successfully Logined to Global Server\n\n')
@@ -68,12 +67,12 @@ class DeployServer:
 
             except (ConnectionError, ConnectionRefusedError,
                     ConnectionResetError, ConnectionAbortedError) as e:
-                print('[Deploy Server] Error : ', str(e))
+                print('[Deploy Server] Error : ', str(e), '\n\n')
                 await asyncio.sleep(1)
 
             except Exception as e:
                 print('[Deploy Server] Error : ', str(e))
-                print('[Deploy Server] Close Connection..Retry to Connect')
+                print('[Deploy Server] Close Connection..Retry to Connect\n\n')
                 if writer is not None:
                     await writer.drain()
                     writer.close()
@@ -90,4 +89,5 @@ if __name__ == "__main__":
     print('')
     host = input("[Deploy Server] 호스트 IP 를 입력하세요 (ex 192.168.0.1) : ")
     port = int(input("[Deploy Server] 호스트 PORT 를 입력하세요 (ex 8877) : ", ))
-    DeployServer(host=host, port=port)
+    deployServer = DeployServer(host=host, port=port)
+    asyncio.run(deployServer.run())

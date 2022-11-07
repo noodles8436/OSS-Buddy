@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+from PROTOCOL import SUB_TASK_SPLIT
 
 
 def getDumpFromObject(target: object):
@@ -46,6 +47,14 @@ class DetectResult:
     def getComplete(self):
         return self.isComplete
 
+    def toString(self) -> str:
+        result = ""
+        for key in self.resultDict.keys():
+            result += key + SUB_TASK_SPLIT + self.resultDict[key] + SUB_TASK_SPLIT
+
+        result = result[:-1]
+        return result
+
 
 class Assignment:
 
@@ -53,7 +62,6 @@ class Assignment:
         self.client_ip = client_ip
         self.images = images
         self.DetectResult = None
-        self.isAssignCompleted_Flag = False
 
     def setDetectResult_FromDump(self, bytes_result: bytes) -> None:
         self.DetectResult = pickle.loads(bytes_result)
@@ -67,6 +75,3 @@ class Assignment:
 
     def getClient_IP(self) -> str:
         return self.client_ip
-
-    def isAssignCompleted(self):
-        return self.isAssignCompleted_Flag

@@ -20,12 +20,13 @@ warnings.filterwarnings("ignore", category=UserWarning)
 YOLO_PERSON_CLASS = 0
 YOLO_BUS_LABEL = 5
 device = 'cuda'  # or 'cpu'
+FPS = 4
 
 
 def ava_inference_transform(
         clip,
         boxes,
-        num_frames=4,  # if using slowfast_r50_detection, change this to 32
+        num_frames=FPS,  # if using slowfast_r50_detection, change this to 32
         crop_size=256,
         data_mean=[0.45, 0.45, 0.45],
         data_std=[0.225, 0.225, 0.225],

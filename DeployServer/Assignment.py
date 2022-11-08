@@ -41,6 +41,16 @@ class DetectResult:
             return self.resultDict['Understanding']
         return None
 
+    def getResult_Understanding_cntDict(self) -> dict:
+        uniq, cnt = np.unique(self.getResult_Understanding(), return_counts=True)
+        return dict(zip(uniq, cnt))
+
+    def getResult_Understanding_sitCnt(self) -> int:
+        cntDict = self.getResult_Understanding_cntDict()
+        if "11" in cntDict.keys():
+            return cntDict["11"]
+        return 0
+
     def setComplete(self):
         self.isComplete = True
 

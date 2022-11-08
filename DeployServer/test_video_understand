@@ -1,0 +1,57 @@
+import time
+import cv2
+import numpy as np
+import Model
+
+model = Model.Model()
+
+
+def test_model():
+    video_data = list()
+    prev_time = 0
+    cap = cv2.VideoCapture(0)
+    FPS = 4
+
+    while True:
+        ret, frame = cap.read()
+        current_time = time.time() - prev_time
+
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
+
+        if (ret is True) and (current_time > 1. / FPS):
+            prev_time = time.time()
+            video_data.append(frame)
+
+            if len(video_data) >= 4:
+                _pred_Bus, _pred_Person, _top_classes = model.understanding(np.array(video_data))
+                video_data = list()
+                print(_pred_Bus, _pred_Person, _top_classes)
+                uniq, cnt = np.unique(_top_classes, return_counts=True)
+                _top_classes_cnt = dict(zip(uniq, cnt))
+                print(_top_classes_cnt)
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+def test_pickle():
+    import Assignment
+    res = Assignment.DetectResult()
+    res.setComplete()
+    res.setResult_Understanding([[11, 74]])
+    res.setResult_OCR([])
+    res.setResult_ObjDetection([(65.625, 114.875, 479.0, 583.5)])
+
+    bytes_res = Assignment.getDumpFromObject(res)
+    res = None
+
+    recovery_res: Assignment.DetectResult = Assignment.loadDataFromDump(bytes_res)
+    print(recovery_res.getComplete())
+    print(recovery_res.getResult_ObjDetection())
+    print(recovery_res.getResult_OCR())
+    print(recovery_res.getResult_Understanding())
+
+
+if __name__ == "__main__":
+    test_model()

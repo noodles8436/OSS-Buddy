@@ -12,6 +12,7 @@ class UserManager:
         self.busComingInfo = {}  # busComingInfo[node_id] = route_No
         self.busStopData = {}  # busStopData[node_id] = [lati, long, nodeNm]
         self.busArrivalData = {}  # busArrivalData[node_id] = dict[routeNo] => [Arrival, VehicleNo]
+        self.nodeSitCount = {}  # nodeSitCount[node_id] = int
 
         self.busDriverBusStack = {}  # busDriverBusStack[vehicleNo] = list[nodeId, nodeId...]
 
@@ -90,7 +91,7 @@ class UserManager:
             long = stopData[1]
             dis_lati = abs(user_lati - lati)
             dis_long = abs(user_long - long)
-            dis = (dis_lati + dis_long)**(1/2)
+            dis = (dis_lati + dis_long) ** (1 / 2)
 
             if dis <= radius:
                 return nodeid
@@ -152,8 +153,19 @@ class UserManager:
             return self.busComingInfo[node_id]
         return None
 
-    # Bus Driver Section
+    def setNodeSitCount(self, node_id: str, sitCnt: int) -> None:
+        self.nodeSitCount[node_id] = sitCnt
 
+    def getNodeSitCount(self, node_id: str, sitCnt: int) -> int:
+        if node_id in self.nodeSitCount.keys():
+            return self.nodeSitCount[node_id]
+        return 0
+
+    def removeNodeSitCount(self, node_id: str) -> None:
+        if node_id in self.nodeSitCount.keys():
+            self.nodeSitCount.__delitem__(node_id)
+
+    # Bus Driver Section
     def busDriverRegister(self, vehicleNo: str, name: str, mac_add: str) -> str:
         result: bool = self.DB.addBusDriver(vehicleno=vehicleNo, name=name, mac_add=mac_add)
         if result is True:

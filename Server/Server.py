@@ -254,7 +254,7 @@ class Server:
 
                 for i in range(2, cnt + 2):
                     _busData = msg[i].split(":")
-                    #print(_busData)
+                    # print(_busData)
                     result[_busData[0]] = [int(_busData[1]), _busData[2]]
 
                 self.userMgr.setBusArrivalData(nodeId=nodeId, arrivalDict=result)
@@ -280,20 +280,26 @@ class Server:
                 print('Coming Bus : ', msg)
 
                 if msg[0] == p.RASP_DETECTOR_BUS_CATCH:
-                    if len(msg) == 3:
+                    if len(msg) == 4:
                         routeNo = msg[2]
                         self.userMgr.setBusComing(node_id=nodeId, routeNo=routeNo)
 
                 elif msg[0] == p.RASP_DETECTOR_BUS_NONE:
                     self.userMgr.removeBusComing(node_id=nodeId)
 
-        except ConnectionResetError:
-            self.userMgr.removeBusComing(node_id=nodeId)
+                sitCnt = int(msg[-1])
+                self.userMgr.setNodeSitCount(node_id=nodeId, sitCnt=sitCnt)
 
-        except Exception as e:
+        except (ConnectionError, ConnectionResetError, ConnectionRefusedError, ConnectionAbortedError):
+            self.userMgr.removeBusComing(node_id=nodeId)
+            self.userMgr.removeNodeSitCount(node_id=nodeId)
+
+        except Exception:
             await writer.drain()
             writer.close()
             await writer.wait_closed()
+            self.userMgr.removeBusComing(node_id=nodeId)
+            self.userMgr.removeNodeSitCount(node_id=nodeId)
 
     async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str,
                                routeNo: str, node_left_alarm=3):
@@ -375,7 +381,7 @@ class Server:
 
     def isBusAlarmTime(self, userMac: str) -> bool:
         result: list = self.userMgr.getUserReserveBus(user_mac=userMac)
-        #print('UserReserveBus', result)
+        # print('UserReserveBus', result)
         if result is None:
             return False
 
@@ -390,8 +396,8 @@ class Server:
         if arrdata is None:
             return False
 
-        #print('3정거장 전', arrdata[0])
-        #print('comingBus :', comingBus)
+        # print('3정거장 전', arrdata[0])
+        # print('comingBus :', comingBus)
 
         if comingBus == route_id and arrdata[0] <= 3:
             return True
@@ -400,5 +406,10 @@ class Server:
 
 
 if __name__ == "__main__":
-    server = Server(ip='115.86.19.194', port=7788)
+    print('        [ OSS Buddy Project ]       '.center(75))
+    print('')
+    host = input("[Raspberry] 서버 Open IP 를 입력하세요 (ex 192.168.0.1) : ")
+    port = int(input("[Raspberry] 서버 Open PORT 를 입력하세요 (ex 8877) : ", ))
+
+    server = Server(ip=host, port=port)
     asyncio.run(server.run_server())

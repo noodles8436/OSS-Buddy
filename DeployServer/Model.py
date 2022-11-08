@@ -97,7 +97,6 @@ class Model:
 
         detections = self.detector(inp_img.cpu().detach().numpy())
         results = detections.pandas().xyxy[0].to_dict(orient="records")
-        print(results)
 
         _pred_Person = list()
         _pred_Bus = list()
@@ -148,7 +147,7 @@ class Model:
         _pred_Bus, _pred_Person = self.detectObjects(inp_img)
 
         if len(_pred_Person) == 0:
-            return [], [], [], []
+            return [], [], []
 
         inp_imgs = torch.Tensor(inp_imgs)
 

@@ -41,6 +41,14 @@ class DetectResult:
             return self.resultDict['Understanding']
         return None
 
+    def setResult_Chairs(self, result: list):
+        self.resultDict['Chairs'] = result
+
+    def getResult_Chairs(self) -> list or None:
+        if "Chairs" in self.resultDict.keys():
+            return self.resultDict["Chairs"]
+        return None
+
     def getResult_Understanding_cntDict(self) -> dict:
         uniq, cnt = np.unique(self.getResult_Understanding(), return_counts=True)
         return dict(zip(uniq, cnt))
@@ -49,6 +57,11 @@ class DetectResult:
         cntDict = self.getResult_Understanding_cntDict()
         if "11" in cntDict.keys():
             return cntDict["11"]
+        return 0
+
+    def getResult_Chairs_Cnt(self) -> int:
+        if "Chairs" in self.resultDict.keys():
+            return len(self.resultDict["Chairs"])
         return 0
 
     def setComplete(self):
@@ -64,6 +77,9 @@ class DetectResult:
 
         result = result[:-1]
         return result
+
+    def getCanSitCnt(self) -> int:
+        return max(0, self.getResult_Chairs_Cnt() - self.getResult_Understanding_sitCnt())
 
 
 class Assignment:

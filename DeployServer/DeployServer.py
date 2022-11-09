@@ -44,18 +44,27 @@ class DeployServer:
 
                 while True:
                     print('[Deploy Server] Waiting Assignment from global server')
-                    recv: bytes = await reader.read(p.SERVER_PACKET_SIZE)
-                    images: np.ndarray = loadDataFromDump(recv)
+                    print('Try To Read Images')
+                    bytes_imgs: bytes = bytes()
+                    while True:
+                        data: bytes = await reader.read(p.SERVER_PACKET_SIZE)
+                        bytes_imgs += data
+                        if len(data) < p.SERVER_PACKET_SIZE:
+                            break
+
+                    print('Image Readed!')
+                    images: np.ndarray = loadDataFromDump(bytes_imgs)
                     print('[Deploy Server] Assigned! Received images...')
 
                     print('[Deploy Server] predict images using model...')
-                    _pred_Bus, _pred_Person, top_classes, top_labels = self.predict(images)
-
+                    _pred_Bus, _pred_Person, top_classes, _pred_Chair = self.predict(images)
+                    print(' Detect Result -> ', _pred_Bus, _pred_Person, top_classes)
                     print('[Deploy Server] predicted! create detect result object...')
                     result: DetectResult = DetectResult()
                     result.setResult_OCR(_pred_Bus)
                     result.setResult_ObjDetection(_pred_Person)
                     result.setResult_Understanding(top_classes)
+                    result.setResult_Chairs(_pred_Chair)
                     result.setComplete()
 
                     print('[Deploy Server] object created! send detect result object to server')
@@ -80,8 +89,8 @@ class DeployServer:
                 await asyncio.sleep(1)
 
     def predict(self, images: np.ndarray):
-        _pred_Bus, top_scores, top_classes, top_labels = self.model.understanding(images)
-        return _pred_Bus, top_scores, top_classes, top_labels
+        _pred_Bus, _pred_Person, top_classes, _pred_Chair = self.model.understanding(images)
+        return _pred_Bus, _pred_Person, top_classes, _pred_Chair
 
 
 if __name__ == "__main__":

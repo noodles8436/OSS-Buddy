@@ -19,6 +19,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 warnings.filterwarnings("ignore", category=UserWarning)
 YOLO_PERSON_CLASS = 0
 YOLO_BUS_LABEL = 5
+YOLO_CHAIR_LABEL = 56
 device = 'cuda'  # or 'cpu'
 FPS = 4
 
@@ -92,14 +93,18 @@ class Model:
         self.label_map, _ = AvaLabeledVideoFramePaths.read_label_map('ava_action_list.pbtxt')
 
     def detectObjects(self, inp_img: np.ndarray, confidence=0.5):
-        inp_img = torch.Tensor(inp_img)
-        inp_img = inp_img.permute(1, 0, 2)
 
-        detections = self.detector(inp_img.cpu().detach().numpy())
+        tensor_img = torch.Tensor(inp_img)
+        tensor_img = tensor_img.permute(2, 0, 1)
+
+        detections = self.detector(tensor_img.cpu().detach().numpy())
         results = detections.pandas().xyxy[0].to_dict(orient="records")
+
+        print(results)
 
         _pred_Person = list()
         _pred_Bus = list()
+        _pred_chair = list()
 
         for result in results:
             if result['confidence'] < confidence:
@@ -113,21 +118,28 @@ class Model:
             if result['class'] == YOLO_BUS_LABEL:
                 _pred_Bus.append(self.detectBusNumber(cvImg=inp_img, xyxy=xyxy))
 
+            if result['class'] == YOLO_CHAIR_LABEL:
+                _pred_chair.append(xyxy)
+
         _pred_Person = np.array(_pred_Person)
         _pred_Person = torch.FloatTensor(_pred_Person)
 
-        return _pred_Bus, _pred_Person
+        return _pred_Bus, _pred_Person, _pred_chair
 
     def detectBusNumber(self, cvImg, xyxy):
         x1 = int(xyxy[0])
-        x2 = int(xyxy[1])
-        y1 = int(xyxy[2])
+        y1 = int(xyxy[1])
+        x2 = int(xyxy[2])
         y2 = int(xyxy[3])
 
+        print(cvImg.shape)
         cropImg = cvImg[y1:int(y2 / 2), x1:x2, :]
+        print(cropImg.shape)
         cropImg = cv2.cvtColor(cropImg, cv2.COLOR_BGR2GRAY)
-
         ocr_result = self.reader.readtext(cropImg)
+
+        print(ocr_result)
+
         _data: list = list()
 
         if len(ocr_result) == 0:
@@ -144,14 +156,16 @@ class Model:
             return self.label_map[class_id]
 
         inp_img = inp_imgs[len(inp_imgs) // 2]
-        _pred_Bus, _pred_Person = self.detectObjects(inp_img)
+        _pred_Bus, _pred_Person, _pred_Chair = self.detectObjects(inp_img)
 
         if len(_pred_Person) == 0:
-            return [], [], []
+            return _pred_Bus, [], []
+
+        print("understanding -> ", inp_imgs.shape)
 
         inp_imgs = torch.Tensor(inp_imgs)
-
         inp_imgs = inp_imgs.permute(3, 0, 1, 2)
+        print(inp_imgs.shape)
         inputs, inp_boxes, _ = ava_inference_transform(inp_imgs, _pred_Person.numpy())
         inp_boxes = torch.cat([torch.zeros(inp_boxes.shape[0], 1), inp_boxes], dim=1)
 
@@ -166,7 +180,7 @@ class Model:
             top_class = torch.squeeze(torch.nonzero(mask), dim=-1).tolist()
             top_classes.append(top_class)
 
-        return _pred_Bus, _pred_Person, top_classes
+        return _pred_Bus, _pred_Person, top_classes, _pred_Chair
 
 
 if __name__ == "__main__":

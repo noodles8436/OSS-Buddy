@@ -21,19 +21,28 @@ import socket
 import threading
 import time
 
+import numpy as np
+
+import DetectorConnector
 import PROTOCOL as p
 import BusManager
-import Detector
+from Assignment import DetectResult
+import cv2
 
 
 class busDetectorThread(threading.Thread):
 
-    def __init__(self, host, port, busManager):
+    def __init__(self, host, port, busManager, detector_host: str, detector_port: int):
         threading.Thread.__init__(self)
         self.host = host
         self.port = port
-        self.Detector = Detector.Detector()
+        self.detector_host = detector_host
+        self.detector_port = detector_port
+        self.Detector = DetectorConnector.DetectorConnector(ip=self.detector_host, port=self.detector_port)
         self.busManager = busManager
+        self.cap = cv2.VideoCapture(0)
+        self.FPS = 4
+        self.prev_time = 0
 
     def bus_number_filter(self, _pred: list[list[str, float, int]]) -> str or None:
         busList = self.busManager.getBusRouteNoList()
@@ -59,14 +68,11 @@ class busDetectorThread(threading.Thread):
         while True:
             try:
                 print("[Rasp Detector] Try to Connect Server")
-                # reader, writer = await asyncio.open_connection(host=self.host, port=self.port)
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 client_socket.connect((self.host, self.port))
                 print("[Rasp Detector] Server Connected")
 
                 msg = p.RASP_DETECTOR_LOGIN + p.TASK_SPLIT + self.busManager.getNodeId()
-                # writer.write(msg.encode())
-                # await writer.drain()
                 client_socket.sendall(msg.encode())
                 print("[Rasp Detector] Try to Login Server")
 
@@ -81,37 +87,60 @@ class busDetectorThread(threading.Thread):
                 print("[Rasp Detector] Server Login Success")
 
                 while True:
-                    _send = ""
-                    _pred = self.Detector.detect()
+                    try:
+                        _send = ""
+                        detectResult: DetectResult = self.Detector.detect(self.getCameraImgs())
+                        _pred_bus = detectResult.getResult_OCR()
 
-                    if _pred is not None:
-                        print("There is 1 Over Bus")
-                        routeNo = self.bus_number_filter(_pred=_pred)
-                    else:
-                        routeNo = None
+                        print(detectResult)
 
-                    if routeNo is None:
-                        _send = p.RASP_DETECTOR_BUS_NONE
-                    else:
-                        _send = p.RASP_DETECTOR_BUS_CATCH + p.TASK_SPLIT \
-                                + self.busManager.getBusRouteIdFromNo(routeNo=routeNo) + p.TASK_SPLIT + routeNo
+                        if _pred_bus is not None and len(_pred_bus) != 0:
+                            routeNo = self.bus_number_filter(_pred=_pred_bus)
+                        else:
+                            routeNo = None
 
-                    client_socket.sendall(_send.encode())
-                    time.sleep(1)
+                        if routeNo is None:
+                            _send = p.RASP_DETECTOR_BUS_NONE
+                        else:
+                            _send = p.RASP_DETECTOR_BUS_CATCH + p.TASK_SPLIT \
+                                    + self.busManager.getBusRouteIdFromNo(routeNo=routeNo) + p.TASK_SPLIT + routeNo
 
-                    # writer.write(_send.encode())
-                    # await writer.drain()
-                    # await asyncio.sleep(p.BUS_REALTIME_SEARCH_TERM)
+                        sitCnt: int = detectResult.getResult_Understanding_sitCnt()
+                        _send += p.TASK_SPLIT + str(sitCnt)
+
+                        client_socket.sendall(_send.encode())
+                        time.sleep(1)
+                    except (ConnectionError, ConnectionResetError, ConnectionRefusedError, ConnectionAbortedError):
+                        self.Detector.disconnectServer()
+                        time.sleep(1)
+                        self.Detector.connectServer()
 
             except Exception as e:
                 print(e.args[0])
                 if client_socket is not None:
                     client_socket.close()
+                time.sleep(1)
+
+    def getCameraImgs(self) -> np.ndarray:
+        video_data = list()
+        while True:
+            ret, frame = self.cap.read()
+            current_time = time.time() - self.prev_time
+
+            if cv2.waitKey(1) & 0xFF == 27:
+                break
+
+            if (ret is True) and (current_time > 1. / self.FPS):
+                prev_time = time.time()
+                video_data.append(frame)
+
+                if len(video_data) >= 4:
+                    return np.array(video_data)
 
 
 class RaspMain:
 
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str, port: int, detector_host: str, detector_port: int):
         self.serverTask = None
         self.busManager = BusManager.BusManager()
         if self.busManager.setUp() is False:
@@ -119,11 +148,9 @@ class RaspMain:
 
         self.host = host
         self.port = port
-
-        self.busDetectorThread = busDetectorThread(self.host, self.port, self.busManager)
+        self.busDetectorThread = busDetectorThread(self.host, self.port, self.busManager, detector_host, detector_port)
 
     async def start(self):
-        # self.serverTask = await asyncio.gather(self.busDetector(), self.infoProvider())
         self.busDetectorThread.start()
         self.serverTask = await asyncio.tasks.create_task(self.infoProvider())
 
@@ -166,19 +193,24 @@ class RaspMain:
                     if msg[0] == p.RASP_REQ_ALL_BUS_ARR:
                         print('[Rasp INFO] Server Requested : RASP_REQ_ALL_BUS_ARR')
 
-                        _busDict, isExist = self.busManager.getAllBusFastArrival()
+                        try:
+                            _busDict, isExist = self.busManager.getAllBusFastArrival()
 
-                        if isExist is False:
+                            if isExist is False:
+                                _sendMsg: str = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "0"
+                            else:
+                                _sendMsg: str = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + str(len(_busDict.keys()))
+                                for _routeNo in _busDict.keys():
+                                    _sendMsg += p.TASK_SPLIT + _routeNo + ":" + str(_busDict[_routeNo][0]) \
+                                                + ":" + str(_busDict[_routeNo][1])
+                            print('[Rasp INFO] Send Request To Server', _sendMsg)
+
+                        except Exception:
                             _sendMsg: str = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "0"
-                        else:
-                            _sendMsg: str = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + str(len(_busDict.keys()))
-                            for _routeNo in _busDict.keys():
-                                _sendMsg += p.TASK_SPLIT + _routeNo + ":" + str(_busDict[_routeNo][0]) \
-                                            + ":" + str(_busDict[_routeNo][1])
-                        print('[Rasp INFO] Send Request To Server', _sendMsg)
 
                         # ONLY TEST
-                        # _sendMsg = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "01" + p.TASK_SPLIT + "30:3:강원71자1529"
+                        _sendMsg = p.RASP_REQ_ALL_BUS_ARR + p.TASK_SPLIT + "01" + p.TASK_SPLIT + "30:3:강원71자1529"
+                        print('[Rasp INFO] Send Request To Server', _sendMsg)
 
                         writer.write(_sendMsg.encode())
                         await writer.drain()
@@ -230,5 +262,12 @@ class RaspMain:
 
 
 if __name__ == "__main__":
-    main = RaspMain(host=p.SERVER_IP, port=p.SERVER_PORT)
+    print('        [ OSS Buddy Project ]       '.center(75))
+    print('')
+    host = input("[Raspberry] 서버 IP 를 입력하세요 (ex 192.168.0.1) : ")
+    port = int(input("[Raspberry] 서버 PORT 를 입력하세요 (ex 8877) : ", ))
+    detector_host = input("[Raspberry] DETECTOR 서버 IP 를 입력하세요 (ex 192.168.0.1) : ")
+    detector_port = int(input("[Raspberry] DETECTOR 서버 PORT 를 입력하세요 (ex 8877) : ", ))
+
+    main = RaspMain(host=host, port=port, detector_host=detector_host, detector_port=detector_port)
     asyncio.run(main.start())

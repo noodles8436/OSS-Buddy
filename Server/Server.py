@@ -95,6 +95,7 @@ class Server:
                 msg_result = p.BUSDRIVER_LOGIN_FAIL
             print(msg_result)
             writer.write(msg_result.encode())
+            await writer.drain()
 
             if msg_result == p.BUSDRIVER_LOGIN_SUCCESS:
                 await self.BusDriverHandler(reader=reader, writer=writer, vehlcleNo=msg[1], routeNo=msg[4])
@@ -303,20 +304,26 @@ class Server:
                 msg = data.decode().split(p.TASK_SPLIT)
 
                 if msg[0] == p.RASP_DETECTOR_BUS_CATCH:
-                    if len(msg) == 3:
+                    if len(msg) == 4:
                         routeNo = msg[2]
                         self.userMgr.setBusComing(node_id=nodeId, routeNo=routeNo)
 
                 elif msg[0] == p.RASP_DETECTOR_BUS_NONE:
                     self.userMgr.removeBusComing(node_id=nodeId)
 
-        except ConnectionResetError:
-            self.userMgr.removeBusComing(node_id=nodeId)
+                sitCnt = int(msg[-1])
+                self.userMgr.setNodeSitCount(node_id=nodeId, sitCnt=sitCnt)
 
-        except Exception as e:
+        except (ConnectionError, ConnectionResetError, ConnectionRefusedError, ConnectionAbortedError):
+            self.userMgr.removeBusComing(node_id=nodeId)
+            self.userMgr.removeNodeSitCount(node_id=nodeId)
+
+        except Exception:
             await writer.drain()
             writer.close()
             await writer.wait_closed()
+            self.userMgr.removeBusComing(node_id=nodeId)
+            self.userMgr.removeNodeSitCount(node_id=nodeId)
 
     async def BusDriverHandler(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, vehlcleNo: str,
                                routeNo: str, node_left_alarm=3):
@@ -412,6 +419,9 @@ class Server:
         if arrdata is None:
             return False
 
+        # print('3정거장 전', arrdata[0])
+        # print('comingBus :', comingBus)
+
         if comingBus == route_id and arrdata[0] <= 3:
             return True
         else:
@@ -419,5 +429,10 @@ class Server:
 
 
 if __name__ == "__main__":
-    server = Server(ip=p.SERVER_IP, port=p.SERVER_PORT)
+    print('        [ OSS Buddy Project ]       '.center(75))
+    print('')
+    host = input("[Raspberry] 서버 Open IP 를 입력하세요 (ex 192.168.0.1) : ")
+    port = int(input("[Raspberry] 서버 Open PORT 를 입력하세요 (ex 8877) : ", ))
+
+    server = Server(ip=host, port=port)
     asyncio.run(server.run_server())

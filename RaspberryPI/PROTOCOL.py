@@ -5,7 +5,7 @@ SERVER_PACKET_SIZE = 1024
 GLOBAL_SERVER_PACKET_SIZE = 8192
 
 TASK_SPLIT = ";"
-SUB_TASK_SPLIT = ";"
+SUB_TASK_SPLIT = "|"
 
 # 작업번호:내용
 
@@ -13,8 +13,6 @@ SUB_TASK_SPLIT = ";"
 # (Res. RaspBerry 주변 새로은 MAC 유저 확인 ) 있는 유저 = 33;00 or 없는 유저 = 33;01
 
 # (RaspBerry 주변 등록된 유저 사라짐) 34;usermac;nodeid
-
-
 
 # Timeout 대응 TASK CODE
 
@@ -160,3 +158,8 @@ RASP_DETECTOR_BUS_CATCH = "41"
 
 # (RaspBerry 초접근 버스 없음) 42
 RASP_DETECTOR_BUS_NONE = "42"
+
+CLIENT_LOGIN = "10"
+CLIENT_RASPBERRY_LOGIN = "11"
+CLIENT_LOGIN_SUCCESS = CLIENT_LOGIN + TASK_SPLIT + "00"
+CLIENT_LOGIN_FAIL = CLIENT_LOGIN + TASK_SPLIT + "01"

@@ -59,6 +59,10 @@ public class BD_loginActivity extends AppCompatActivity {
                     prebus.setText(bus.getArrivalLeftNode() + "정거장 뒤");
                     busstop.setText("정거장 이름: "+ bus.getStationName()+" 에 "+"\n"+"예약한 사람이 있습니다.");
                 }
+             
+                if(bus.getAlarming() == true){
+                  // pop up
+                }
             }
         };
 

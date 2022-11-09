@@ -71,6 +71,17 @@
    1. 자신이 운행하는 버스에 대한 예약이 진행되었을 경우, 화면에 예약자의 정류장 위치와 남은 정류장 수가 나온다.   
    2. 이를 확인하여 해당 버스 정류장에 정차하여 시각장애인의 버스 탑승을 돕는다.   
 
+Licenses of Used Libraries 
+----------------------
+```
+PyMySQL - MIT License
+BeautifulSoup4 - MIT License
+OpenCV 4.5.0 이상 - Apache 2 License
+detectionModel - GPL 3.0
+EasyOCR - Apache 2 License
+Pytorch - BSD-3-Clause
+Android - Apache 2 License
+```
 
 Contribute 방법
 ----------------------

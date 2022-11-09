@@ -1,5 +1,6 @@
 import Database
 import PROTOCOL as p
+import traceback
 
 
 class UserManager:
@@ -51,7 +52,7 @@ class UserManager:
             self.userBusStopDict.__delitem__(user_mac)
 
     def setUserReserveBus(self, user_mac: str, node_id: str, routeNo: str) -> bool:
-        print('Set Reserve Node Id : ', node_id)
+        print('Set Reserve Node Id : ', user_mac, node_id, routeNo)
         if user_mac not in self.busReserveDict.keys():
             self.busReserveDict[user_mac] = [node_id, routeNo]
             return self.setBusDriver(nodeid=node_id, routeNo=routeNo)
@@ -59,7 +60,19 @@ class UserManager:
 
     def removeUserReserveBus(self, user_mac: str):
         if user_mac in self.busReserveDict.keys():
-            self.busReserveDict.__delitem__(user_mac)
+            reserve = self.getUserReserveBus(user_mac=user_mac)
+            print('[Remove] Reserve Bus : ', reserve)
+            vehicleNo = self.getBusArrivalData(nodeId=reserve[0], routeNo=reserve[1])[1]
+            print('[Remove] Vehicle No : ', vehicleNo)
+            self.removeBusDriverStackNode(vehicleNo=vehicleNo, nodeId=reserve[0])
+            try:
+                print('[Remove] total', self.busReserveDict)
+                print('[Remove] Remove User Reserve Data : ', self.busReserveDict[user_mac])
+                del self.busReserveDict[user_mac]
+                print('[Remove] total', self.busReserveDict)
+            except Exception as e:
+                print('[Remove] ERROR : ', e.args[0])
+                traceback.print_exc()
 
     def getUserReserveBus(self, user_mac: str) -> list[str, str] or None:
         print(self.busReserveDict)
@@ -84,7 +97,7 @@ class UserManager:
 
         return total
 
-    def searchNearBusStation(self, user_lati: float, user_long: float, radius=0.0001) -> str or None:
+    def searchNearBusStation(self, user_lati: float, user_long: float, radius=0.1) -> str or None:
         for nodeid in self.busStopData.keys():
             stopData: list = self.busStopData[nodeid]
             lati = stopData[0]
@@ -210,11 +223,20 @@ class UserManager:
 
     def removeBusDriverStackNode(self, vehicleNo: str, nodeId: str):
         nodeList: list[str] = self.busDriverBusStack[vehicleNo]
+        print('Searched Nodes of Vehicle', nodeList)
         if nodeId in nodeList:
-            nodeList.remove(__value=nodeId)
+            print('[Remove] Node List in Stack!')
+            try:
+                nodeList.remove(nodeId)
+            except Exception as e:
+                print('[Remove]', e.args[0])
+            print('[Remove] Removed List Status :', nodeList)
+            self.busDriverBusStack[vehicleNo] = nodeList
 
     def getBusDriverStopPoint(self, vehicleNo: str, routeNo: str) -> list[int, str, str] or None:
+        self.refreshBusDriverPoints(vehicleNo=vehicleNo, routeNo=routeNo)
         nodeList: list[str] = self.busDriverBusStack[vehicleNo]
+        print(" BUS DRIVER STOP LIST : ", nodeList)
         if len(nodeList) == 0:
             return None
 

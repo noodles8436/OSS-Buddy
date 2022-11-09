@@ -101,10 +101,9 @@ public class NetworkBus {
     public static BusReserve getReserveStation() {
         String recvMsg = recv();
         String[] recvResult = recvMsg.split(PROTOCOL_BUS.TASK_SPLIT);
-        System.out.println("yeayea");
-        String[] result = new String[2];
+        String[] result = new String[3];
         if(recvResult[0].equals(PROTOCOL_BUS.BUSDRIVER_NODE_ANNOUNCE)) {
-            BusReserve bus = new BusReserve(recvResult[1], Integer.parseInt(recvResult[2]));
+            BusReserve bus = new BusReserve(recvResult[1], Integer.parseInt(recvResult[2]), recvResult[3]);
             return bus;
         }else {
             return null;

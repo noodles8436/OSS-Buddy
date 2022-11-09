@@ -1,3 +1,21 @@
+'''
+OSS-BUDDY : Smart Bus Boarding System for the Blind
+Copyright (C) 2022 OSS-BUDDY Authors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+ 
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
+'''
+
 import asyncio
 import UserManager
 import PROTOCOL as p
@@ -151,6 +169,7 @@ class Server:
                             msg_result = self.busReservation(userMac=userMac, routeNo=msg[1])
                         else:
                             msg_result = p.USER_BUS_RESERVATION_CONFIRM_FAIL
+                            # TODO : REMOVE USER RESERVATION
 
                         writer.write(msg_result.encode())
                         await writer.drain()
@@ -174,6 +193,7 @@ class Server:
                                         # Alarm User
                                         writer.write(p.USER_BUS_ARRIVED_VIBE.encode())
                                         await writer.drain()
+                                        self.userMgr.removeUserReserveBus(user_mac=userMac)
                                         break
 
                     elif msg[0] == p.USER_REQ_BUS_LIST:
@@ -196,13 +216,23 @@ class Server:
                 msg_result = p.USER_LOCATION_FIND_FAIL
                 writer.write(msg_result.encode())
                 await writer.drain()
+                self.userMgr.removeUserReserveBus(user_mac=userMac)
 
-        except ConnectionError or ConnectionResetError:
+        except ConnectionAbortedError:
             self.userMgr.removeUserReserveBus(user_mac=userMac)
-            return
+
+        except ConnectionResetError:
+            self.userMgr.removeUserReserveBus(user_mac=userMac)
+
+        except ConnectionRefusedError:
+            self.userMgr.removeUserReserveBus(user_mac=userMac)
+
+        except ConnectionError:
+            self.userMgr.removeUserReserveBus(user_mac=userMac)
 
         except Exception:
             # 클라이언트 위치 확인 안됨
+            self.userMgr.removeUserReserveBus(user_mac=userMac)
             msg_result = p.KICK_USER
             writer.write(msg_result.encode())
             await writer.drain()
@@ -214,17 +244,14 @@ class Server:
                 msg = data.decode().split(p.TASK_SPLIT)
                 lati = float(msg[1])
                 long = float(msg[2])
-                print(lati, long)
                 near_busStop = self.userMgr.searchNearBusStation(user_lati=lati, user_long=long)
                 if near_busStop is None:
                     self.userMgr.removeUserLocation(user_mac=userMac)
                 else:
                     self.userMgr.setUserLocation(user_mac=userMac, node_id=near_busStop)
 
-        except ConnectionError or ConnectionResetError:
-            self.userMgr.removeUserLocation(user_mac=userMac)
-
         except Exception:
+            self.userMgr.removeUserLocation(user_mac=userMac)
             await writer.drain()
             writer.close()
             await writer.wait_closed()
@@ -254,7 +281,6 @@ class Server:
 
                 for i in range(2, cnt + 2):
                     _busData = msg[i].split(":")
-                    # print(_busData)
                     result[_busData[0]] = [int(_busData[1]), _busData[2]]
 
                 self.userMgr.setBusArrivalData(nodeId=nodeId, arrivalDict=result)
@@ -276,8 +302,6 @@ class Server:
             while True:
                 data = await reader.read(p.SERVER_PACKET_SIZE)
                 msg = data.decode().split(p.TASK_SPLIT)
-
-                print('Coming Bus : ', msg)
 
                 if msg[0] == p.RASP_DETECTOR_BUS_CATCH:
                     if len(msg) == 4:
@@ -333,14 +357,14 @@ class Server:
 
         except ConnectionError or ConnectionResetError:
             self.userMgr.busDriverLogOut(vehicleNo=vehlcleNo)
-            print("ERROR")
             return
 
         except Exception:
-            print("ERROR")
             await writer.drain()
             writer.close()
             await writer.wait_closed()
+            self.userMgr.busDriverLogOut(vehicleNo=vehlcleNo)
+            return
 
     async def connectionCheck(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> bool:
         msg = p.CONNECTION_CHECK
@@ -381,7 +405,6 @@ class Server:
 
     def isBusAlarmTime(self, userMac: str) -> bool:
         result: list = self.userMgr.getUserReserveBus(user_mac=userMac)
-        # print('UserReserveBus', result)
         if result is None:
             return False
 
